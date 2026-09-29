@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeHub 20</title>
+<script>try{if(localStorage.getItem("editor-theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-page:#0f111a;--bg-panel:#1a1c23;--bg-header:#14161d;--border:#2a2d3d;--text:#a6accd;--text-hover:#d7dae7;--text-strong:#fff;--muted:#767c9d;--line-num:#464b5d;--accent:#82aaff;--accent-rgb:130,170,255;--green:#c3e88d;--green-rgb:195,232,141;--red:#ff5370;--red-rgb:255,83,112;--yellow:#ffcb6b;--yellow-rgb:255,203,107;--on-accent:#14161d;--hover:rgba(255,255,255,.06);--hover-soft:rgba(255,255,255,.03);--shadow:rgba(0,0,0,.5);--code:#c3e88d;--preview-bg:#1a1c23;color-scheme:dark}
+:root[data-theme="light"]{--bg-page:#eef0f6;--bg-panel:#ffffff;--bg-header:#f3f4fa;--border:#d3d8e6;--text:#3d4257;--text-hover:#1b1f30;--text-strong:#12162a;--muted:#6a7090;--line-num:#a3a9c1;--accent:#2d5bd1;--accent-rgb:45,91,209;--green:#2b7a35;--green-rgb:43,122,53;--red:#d6304d;--red-rgb:214,48,77;--yellow:#b36b00;--yellow-rgb:179,107,0;--on-accent:#fff;--hover:rgba(20,30,70,.06);--hover-soft:rgba(20,30,70,.04);--shadow:rgba(30,40,90,.15);--code:#1f2a44;--preview-bg:#fff;color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg-page);color:var(--text);font-family:'Poppins',sans-serif;padding:25px 15px}
+.code-editor-container{max-width:1050px;margin:0 auto;background:var(--bg-panel);border-radius:12px;box-shadow:0 10px 30px var(--shadow);overflow:hidden;border:1px solid var(--border)}
+.ico{display:inline-block;vertical-align:middle;flex-shrink:0}
+.logo{width:20px;height:20px;object-fit:contain;flex-shrink:0;display:inline-block;vertical-align:middle}
+.lang-item .check{display:inline-flex}
+.editor-header{display:flex;justify-content:space-between;align-items:center;background:var(--bg-header);padding:0 15px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.brand-title{font-size:14px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:8px;padding:10px 0}
+.tabs-bar{display:flex;align-items:flex-end;min-height:47px;padding:0 15px;background:var(--bg-header);border-bottom:1px solid var(--border)}
+.tabs{display:flex;flex:1;gap:4px;overflow-x:auto;min-width:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{background:transparent;color:var(--muted);border:none;outline:none;padding:12px 10px 12px 18px;cursor:pointer;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;border-bottom:3px solid transparent;transition:all .3s ease;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tab-btn:hover{color:var(--text-hover);background:var(--hover-soft)}
+.tab-btn.active{color:var(--text-strong);background:var(--bg-panel);border-bottom:3px solid var(--accent);border-top-left-radius:6px;border-top-right-radius:6px}
+.tab-btn{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tab-btn.dragging{position:relative;z-index:5;transition:none;cursor:grabbing;background:var(--border);color:var(--text-strong);box-shadow:0 6px 18px var(--shadow);border-radius:6px;opacity:.95}
+.tab-close{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);transition:all .2s ease}
+.tab-close:hover{background:var(--red);color:#fff}
+.add-wrap{position:relative;flex-shrink:0;align-self:center;margin-left:8px}
+.add-lang-btn{width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;background:rgba(var(--accent-rgb),.1);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.3);transition:all .2s ease}
+.add-lang-btn:hover{background:var(--accent);color:var(--on-accent)}
+.close-all-btn{flex-shrink:0;align-self:center;margin-left:8px;width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(var(--red-rgb),.1);color:var(--red);border:1px solid rgba(var(--red-rgb),.3);transition:all .2s ease}
+.close-all-btn:hover{background:var(--red);color:#fff}
+.close-all-btn,.add-lang-btn{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#tip{position:fixed;z-index:50;background:#2a2d3d;color:#fff;font-size:12px;font-weight:500;padding:6px 10px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .15s ease;white-space:nowrap;transform:translateX(-50%)}
+#tip.show{opacity:1}
+.picker{display:none;position:absolute;inset:0;z-index:2;background:var(--bg-panel);flex-direction:column;overflow-y:auto;padding:14px 16px}
+.picker::-webkit-scrollbar{width:8px}
+.picker::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.picker-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.picker-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:all .2s ease;user-select:none;-webkit-user-select:none}
+.picker-item:hover{background:var(--hover);color:var(--text-strong)}
+.picker-item.selected{border-color:var(--accent);background:rgba(var(--accent-rgb),.1);color:var(--text-strong)}
+.picker-check{margin-left:auto;display:inline-flex;min-width:12px;color:var(--accent)}
+.picker-foot{position:sticky;bottom:-14px;margin-top:auto;padding:12px 0 14px;background:var(--bg-panel)}
+.lang-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;width:230px;max-height:260px;overflow-y:auto;background:var(--bg-header);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 25px var(--shadow);z-index:10;padding:6px}
+.lang-menu.show{display:block}
+.lang-menu::-webkit-scrollbar{width:6px}
+.lang-menu::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.lang-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:background .2s ease}
+.lang-item:hover{background:var(--hover);color:var(--text-strong)}
+.lang-item.added{color:var(--green)}
+.lang-item .check{margin-left:auto;font-size:11px}
+.mode-mini{margin-left:auto;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.5px}
+.lang-item .check+.mode-mini{margin-left:6px}
+.mode-browser{background:rgba(var(--green-rgb),.1);color:var(--green)}
+.mode-server{background:rgba(var(--yellow-rgb),.1);color:var(--yellow)}
+.button-bar{display:flex;gap:10px;margin:8px 0}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;transition:all .2s ease;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:wait}
+.run-btn{background:rgba(var(--accent-rgb),.1);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.3)}
+.run-btn:hover:not(:disabled){background:var(--accent);color:var(--on-accent)}
+.reset-btn{background:rgba(var(--red-rgb),.1);color:var(--red);border:1px solid rgba(var(--red-rgb),.3)}
+.reset-btn:hover{background:var(--red);color:#fff}
+.download-btn{background:rgba(var(--green-rgb),.1);color:var(--green);border:1px solid rgba(var(--green-rgb),.3)}
+.download-btn:hover{background:var(--green);color:var(--on-accent)}
+.editor-wrapper{display:flex;background:var(--bg-panel);height:300px;position:relative;padding:10px}
+.editor-frame{display:flex;flex:1;min-width:0;height:100%;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg-panel);transition:border-color .2s ease}
+.editor-frame:focus-within{border-color:var(--accent)}
+.line-numbers{min-width:45px;width:max-content;background:var(--bg-header);color:var(--line-num);font-family:'Fira Code',monospace;font-size:14px;line-height:1.6;padding:15px 8px;text-align:right;user-select:none;border-right:1px solid var(--border);overflow:hidden;flex-shrink:0}
+.line-numbers div{white-space:nowrap;overflow:hidden}
+textarea{flex:1;min-width:0;height:100%;background:var(--bg-panel);color:var(--code);border:none;padding:15px;font-family:'Fira Code',monospace;font-size:14px;line-height:1.6;resize:none;outline:none;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;overflow-x:hidden;overflow-y:scroll}
+textarea:disabled{cursor:not-allowed}
+textarea::-webkit-scrollbar,.line-numbers::-webkit-scrollbar{width:8px}
+textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.preview-section{border-top:2px solid var(--border);background:var(--preview-bg)}
+.preview-header{background:var(--bg-header);color:var(--accent);padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.preview-header .mode-mini{font-size:10px}
+iframe{width:100%;height:300px;border:none;background:var(--preview-bg);color-scheme:light;display:block}
+#console{display:none;height:300px;overflow:auto;background:var(--bg-page);color:var(--green);padding:15px;font-family:'Fira Code',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+#console.err{color:var(--red)}
+#console.info{color:var(--muted)}
+
+.theme-btn{background:rgba(var(--yellow-rgb),.1);color:var(--yellow);border:1px solid rgba(var(--yellow-rgb),.3)}
+.theme-btn:hover{background:var(--yellow);color:var(--on-accent)}
+/* Blinking green "live" dot next to the output title */
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:live-blink 1.3s ease-in-out infinite}
+@keyframes live-blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.55)}50%{opacity:.25;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
+/* Desktop: code on the left, output on the right */
+@media (min-width:900px){
+  .code-editor-container{max-width:1500px}
+  .workspace{display:flex;height:clamp(440px,calc(100vh - 220px),780px)}
+  .workspace .editor-wrapper{flex:1 1 50%;min-width:0;height:100%}
+  .workspace .preview-section{flex:1 1 50%;min-width:0;height:100%;display:flex;flex-direction:column;border-top:none;border-left:2px solid var(--border)}
+  .workspace iframe,.workspace #console{flex:1;height:auto;min-height:0}
+}
+.tabs-clear{flex-shrink:0;align-self:center;margin-left:8px;width:32px;height:32px;padding:0;justify-content:center}
+.confirm-ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px}
+.confirm-ov.show{display:flex}
+.confirm-box{width:100%;max-width:360px;background:var(--bg-panel);color:var(--text);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px var(--shadow);padding:20px}
+.confirm-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:var(--red);margin-bottom:8px}
+.confirm-msg{font-size:14px;line-height:1.5;margin-bottom:18px}
+.confirm-actions{display:flex;justify-content:flex-end;gap:10px}
+.confirm-no{background:var(--hover);color:var(--text-strong);border:1px solid var(--border)}
+.confirm-yes{background:var(--red);color:#fff;border:1px solid var(--red)}
+.site-footer{max-width:1050px;margin:18px auto 0;text-align:center;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:.2px}
+.site-footer strong{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<div class="code-editor-container">
+  <div class="editor-header">
+    <div class="brand-title"><span data-ico="code"></span> CodeHub 20</div>
+    <div class="button-bar">
+      <button class="btn theme-btn" id="theme-btn" type="button"></button>
+      <button class="btn download-btn" onclick="downloadCode()"><span data-ico="download"></span> Download</button>
+    </div>
+  </div>
+  <div class="tabs-bar">
+    <div class="tabs" id="tabs"></div>
+    <button class="close-all-btn" id="close-all-btn" type="button" data-tip="Close All Tabs" aria-label="Close All Tabs"><span data-ico="closeall"></span></button>
+    <button class="btn reset-btn tabs-clear" onclick="confirmClear()" type="button" data-tip="Clear" aria-label="Clear"><span data-ico="reset"></span></button>
+    <div class="add-wrap">
+      <button class="add-lang-btn" id="add-lang-btn" type="button" data-tip="Add Language" aria-label="Add Language"><span data-ico="plus"></span></button>
+      <div class="lang-menu" id="lang-menu"></div>
+    </div>
+  </div>
+  <div class="workspace">
+  <div class="editor-wrapper">
+    <div class="editor-frame">
+      <div class="line-numbers" id="line-numbers"></div>
+      <textarea id="code-area" spellcheck="false"></textarea>
+    </div>
+    <div class="picker" id="picker"></div>
+  </div>
+  <div class="preview-section">
+    <div class="preview-header">
+      <span data-ico="play"></span> <span id="preview-title">LIVE OUTPUT</span><span class="live-dot" aria-hidden="true"></span>
+      <span class="mode-mini" id="mode-tag" style="display:none"></span>
+    </div>
+    <iframe id="output-frame"></iframe>
+    <div id="console"></div>
+  </div>
+  </div>
+</div>
+<div class="confirm-ov" id="confirm-ov" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">&#9888; Warning</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn confirm-no" id="confirm-no" type="button">No</button>
+      <button class="btn confirm-yes" id="confirm-yes" type="button">Yes</button>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">Copyright &copy; 2026 <strong>Md. Tanjil Almas Shrabon</strong></footer>
+
+<script>
+// ================== Server settings ==================
+const JUDGE_HOSTS = ["https://ce.judge0.com", "https://extra-ce.judge0.com"];
+const JUDGE_MATCH = {
+  c:/^C \(GCC/, cpp:/^C\+\+ \(GCC/, csharp:/^C# \(Mono/, java:/^Java \(/, php:/^PHP/, go:/^Go/,
+  rust:/^Rust/, kotlin:/^Kotlin/, swift:/^Swift/, ruby:/^Ruby/, dart:/^Dart/, r:/^R \(/,
+  scala:/^Scala/, lua:/^Lua/
+};
+
+const ICON_PATHS = {
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  xmark:'<path d="M6 6l12 12M18 6L6 18"/>',
+  closeall:'<path d="M4 7l9 9M13 7l-9 9M12 4l8 8M20 4l-8 8" transform="translate(0 2)"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  code:'<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>',
+  reset:'<path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/>',
+  download:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
+  play:'<path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+};
+function svg(name,size=14){
+  return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]}</svg>`;
+}
+const T='text-anchor="middle" font-family="Arial,sans-serif" font-weight="700"';
+const LOGOS = {
+  python:'<rect x="4" y="3" width="16" height="16" rx="5" fill="#3776ab"/><rect x="12" y="13" width="16" height="16" rx="5" fill="#ffd43b"/><circle cx="10" cy="8" r="1.6" fill="#fff"/><circle cx="22" cy="24" r="1.6" fill="#3776ab"/>',
+  html:'<path d="M5 3l2 22 9 4 9-4 2-22z" fill="#e34f26"/><path d="M16 5.5v21.7l7.2-3.2 1.7-18.5z" fill="#ef652a"/><text x="16" y="21" '+T+' font-size="13" fill="#fff">5</text>',
+  css:'<path d="M5 3l2 22 9 4 9-4 2-22z" fill="#1572b6"/><path d="M16 5.5v21.7l7.2-3.2 1.7-18.5z" fill="#33a9dc"/><text x="16" y="21" '+T+' font-size="13" fill="#fff">3</text>',
+  javascript:'<rect width="32" height="32" rx="3" fill="#f7df1e"/><text x="29" y="28" text-anchor="end" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#14161d">JS</text>',
+  typescript:'<rect width="32" height="32" rx="3" fill="#3178c6"/><text x="29" y="28" text-anchor="end" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#fff">TS</text>',
+  sql:'<ellipse cx="16" cy="8" rx="10" ry="4" fill="#48cae4"/><path d="M6 8v8c0 2.2 4.5 4 10 4s10-1.8 10-4V8c0 2.2-4.5 4-10 4S6 10.2 6 8z" fill="#0096c7"/><path d="M6 16v8c0 2.2 4.5 4 10 4s10-1.8 10-4v-8c0 2.2-4.5 4-10 4s-10-1.8-10-4z" fill="#0077b6"/>',
+  java:'<path d="M6 16h15v6a5 5 0 0 1-5 5h-5a5 5 0 0 1-5-5z" fill="#5382a1"/><path d="M21 17h2a3 3 0 0 1 0 6h-2" fill="none" stroke="#5382a1" stroke-width="2"/><path d="M11 4c3 3-3 4 0 8M16 5c3 3-3 4 0 7" fill="none" stroke="#e76f00" stroke-width="2" stroke-linecap="round"/><path d="M5 29h17" stroke="#e76f00" stroke-width="2" stroke-linecap="round"/>',
+  c:'<path d="M16 2l12.5 7v14L16 30 3.5 23V9z" fill="#659ad2"/><text x="16" y="21" '+T+' font-size="16" fill="#fff">C</text>',
+  cpp:'<path d="M16 2l12.5 7v14L16 30 3.5 23V9z" fill="#00599c"/><text x="16" y="20" '+T+' font-size="11" fill="#fff">C++</text>',
+  csharp:'<path d="M16 2l12.5 7v14L16 30 3.5 23V9z" fill="#9b4f96"/><text x="16" y="20" '+T+' font-size="13" fill="#fff">C#</text>',
+  php:'<ellipse cx="16" cy="16" rx="15" ry="9.5" fill="#777bb3"/><text x="16" y="20" '+T+' font-size="11" font-style="italic" fill="#fff">php</text>',
+  go:'<rect x="1" y="7" width="30" height="18" rx="9" fill="#00add8"/><text x="16" y="21" '+T+' font-size="12" fill="#fff">GO</text>',
+  rust:'<circle cx="16" cy="16" r="12" fill="none" stroke="#dea584" stroke-width="4" stroke-dasharray="3.1 3.1"/><circle cx="16" cy="16" r="9" fill="#dea584"/><text x="16" y="21" '+T+' font-size="13" fill="#14161d">R</text>',
+  kotlin:'<path d="M3 3h26L16 16l13 13H3z" fill="#a97bff"/><path d="M3 3h13L3 16z" fill="#e44857"/>',
+  swift:'<rect x="2" y="2" width="28" height="28" rx="7" fill="#fa7343"/><path d="M22 10c-3 3-8 6-13 5 4 5 9 4 11 2-1 3-4 5-9 4 6 4 13 1 11-11z" fill="#fff"/>',
+  ruby:'<path d="M9 4h14l6 7-13 17L3 11z" fill="#cc342d"/><path d="M3 11h26M12 11l4 17 4-17M9 4l3 7M23 4l-3 7" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"/>',
+  dart:'<path d="M4 12L12 4h13l3 3v13L16 28 4 16z" fill="#0175c2"/><path d="M12 4l16 16-8 8L4 12z" fill="#40c4ff"/>',
+  lua:'<circle cx="15" cy="17" r="12" fill="#4c5fd5"/><circle cx="15" cy="17" r="6" fill="#fff"/><circle cx="25" cy="7" r="4" fill="#4c5fd5"/>',
+  r:'<ellipse cx="16" cy="16" rx="14" ry="11" fill="#b8bfc9"/><text x="16" y="22" '+T+' font-size="17" fill="#276dc3">R</text>',
+  scala:'<path d="M8 3c10 1 16 2 16 5v4c0-3-6-4-16-5z" fill="#dc322f"/><path d="M8 12c10 1 16 2 16 5v4c0-3-6-4-16-5z" fill="#c02523"/><path d="M8 21c10 1 16 2 16 5v3c0-3-6-4-16-5z" fill="#dc322f"/>'
+};
+function badge(lang){return `<svg class="logo" viewBox="0 0 32 32" aria-label="${lang.name}">${LOGOS[lang.id]}</svg>`}
+document.querySelectorAll("[data-ico]").forEach(el=>{el.outerHTML=svg(el.dataset.ico)});
+
+// ================== Dark / Light theme ==================
+let theme=document.documentElement.dataset.theme==="light"?"light":"dark";
+function applyTheme(t){
+  theme=t;document.documentElement.dataset.theme=t;
+  const b=document.getElementById("theme-btn");
+  b.innerHTML=svg(t==="light"?"moon":"sun")+" "+(t==="light"?"Dark":"Light");
+  b.setAttribute("aria-label",t==="light"?"Switch to dark mode":"Switch to light mode");
+}
+document.getElementById("theme-btn").addEventListener("click",()=>{
+  applyTheme(theme==="dark"?"light":"dark");
+  try{localStorage.setItem("editor-theme",theme)}catch(e){}
+  syncPreviewTheme();
+});
+applyTheme(theme);
+
+const LANGUAGES = [
+  {id:"python",name:"Python",ext:"py",mode:"browser"},
+  {id:"html",name:"HTML",ext:"html",mode:"web"},
+  {id:"css",name:"CSS",ext:"css",mode:"web"},
+  {id:"javascript",name:"JavaScript",ext:"js",mode:"web"},
+  {id:"typescript",name:"TypeScript",ext:"ts",mode:"browser"},
+  {id:"sql",name:"SQL",ext:"sql",mode:"browser"},
+  {id:"lua",name:"Lua",ext:"lua",mode:"browser"},
+  {id:"java",name:"Java",ext:"java",mode:"server",file:"Main.java"},
+  {id:"c",name:"C",ext:"c",mode:"server"},
+  {id:"cpp",name:"C++",ext:"cpp",mode:"server"},
+  {id:"csharp",name:"C#",ext:"cs",mode:"server"},
+  {id:"php",name:"PHP",ext:"php",mode:"server"},
+  {id:"go",name:"Go",ext:"go",mode:"server"},
+  {id:"rust",name:"Rust",ext:"rs",mode:"server"},
+  {id:"kotlin",name:"Kotlin",ext:"kt",mode:"server"},
+  {id:"swift",name:"Swift",ext:"swift",mode:"server"},
+  {id:"ruby",name:"Ruby",ext:"rb",mode:"server"},
+  {id:"dart",name:"Dart",ext:"dart",mode:"server"},
+  {id:"r",name:"R",ext:"r",mode:"server"},
+  {id:"scala",name:"Scala",ext:"scala",mode:"server"}
+];
+
+const codeArea=document.getElementById("code-area");
+const lineNumbers=document.getElementById("line-numbers");
+const output=document.getElementById("output-frame");
+const consoleEl=document.getElementById("console");
+const tabsEl=document.getElementById("tabs");
+const menuEl=document.getElementById("lang-menu");
+const addBtn=document.getElementById("add-lang-btn");
+const titleEl=document.getElementById("preview-title");
+const modeTag=document.getElementById("mode-tag");
+let runId=0;
+const EXAMPLES = {
+  python:"print('Hello, World!')",
+  html:"<h1>Hello, World!</h1>",
+  css:"h1 {\n  color: #82aaff;\n  font-family: sans-serif;\n}",
+  javascript:"console.log('Hello, World!');",
+  typescript:"const greet = (name: string): string => `Hello, ${name}!`;\nconsole.log(greet('World'));",
+  sql:"CREATE TABLE users (id INTEGER, name TEXT);\nINSERT INTO users VALUES (1, 'Alice'), (2, 'Bob');\nSELECT * FROM users;",
+  lua:"print('Hello, World!')",
+  java:"public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}",
+  c:"#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}",
+  cpp:"#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}",
+  csharp:"using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine(\"Hello, World!\");\n    }\n}",
+  php:"<?php\necho \"Hello, World!\\n\";",
+  go:"package main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, World!\")\n}",
+  rust:"fn main() {\n    println!(\"Hello, World!\");\n}",
+  kotlin:"fun main() {\n    println(\"Hello, World!\")\n}",
+  swift:"print(\"Hello, World!\")",
+  ruby:"puts 'Hello, World!'",
+  dart:"void main() {\n  print('Hello, World!');\n}",
+  r:"print(\"Hello, World!\")",
+  scala:"object Main extends App {\n  println(\"Hello, World!\")\n}"
+};
+
+const runCache={}; // last result per tab, keyed by its code
+
+let openTabs=[];
+let codes={};
+let activeLang=null;
+
+const getLang=id=>LANGUAGES.find(l=>l.id===id);
+const isWeb=id=>!id||getLang(id).mode==="web";
+const modeLabel=m=>m==="server"?"SERVER":"BROWSER";
+
+// ================== Press and hold a tab to drag it left/right ==================
+// Touch: hold a tab for ~0.35s to start dragging. Mouse: click and drag.
+let dragMoved=false,dragging=null;
+// Mouse wheel scrolls the tab bar horizontally
+tabsEl.addEventListener("wheel",e=>{
+  if(tabsEl.scrollWidth<=tabsEl.clientWidth)return;
+  const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+  e.preventDefault();
+  tabsEl.scrollBy({left:d,behavior:"auto"});
+},{passive:false});
+tabsEl.addEventListener("touchmove",e=>{if(dragging)e.preventDefault()},{passive:false});
+
+function attachDrag(btn){
+  btn.addEventListener("pointerdown",e=>{
+    if(e.button>0||e.target.closest(".tab-close"))return;
+    const isMouse=e.pointerType==="mouse";
+    const sx=e.clientX,sy=e.clientY;
+    let timer=null,active=false,grab=0;
+
+    const start=()=>{
+      active=true;dragging=btn;dragMoved=true;
+      grab=sx-btn.getBoundingClientRect().left;
+      btn.classList.add("dragging");
+      try{btn.setPointerCapture(e.pointerId)}catch(_){}
+      if(navigator.vibrate)navigator.vibrate(20);
+    };
+    const move=ev=>{
+      if(!active){
+        const far=Math.hypot(ev.clientX-sx,ev.clientY-sy);
+        if(isMouse&&far>5)start();
+        else if(!isMouse&&far>8){cleanup()} // User wants to scroll: cancel drag
+        if(!active)return;
+      }
+      ev.preventDefault();
+      // Auto-scroll the tab bar near the edges
+      const tr=tabsEl.getBoundingClientRect();
+      if(ev.clientX<tr.left+30)tabsEl.scrollLeft-=8;
+      else if(ev.clientX>tr.right-30)tabsEl.scrollLeft+=8;
+      // Swap places when hovering over a neighboring tab
+      const over=[...tabsEl.children].find(t=>{
+        if(t===btn)return false;
+        const r=t.getBoundingClientRect();
+        return ev.clientX>r.left&&ev.clientX<r.right;
+      });
+      if(over){
+        const after=btn.compareDocumentPosition(over)&Node.DOCUMENT_POSITION_FOLLOWING;
+        tabsEl.insertBefore(btn,after?over.nextSibling:over);
+      }
+      btn.style.transform="none";
+      const left=btn.getBoundingClientRect().left;
+      btn.style.transform=`translateX(${ev.clientX-grab-left}px)`;
+    };
+    const cleanup=()=>{
+      clearTimeout(timer);
+      btn.removeEventListener("pointermove",move);
+      btn.removeEventListener("pointerup",end);
+      btn.removeEventListener("pointercancel",end);
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("pointerup",end);
+      window.removeEventListener("pointercancel",end);
+    };
+    const end=()=>{
+      cleanup();
+      if(active){
+        btn.classList.remove("dragging");btn.style.transform="";
+        openTabs=[...tabsEl.children].map(b=>b.dataset.id);
+        dragging=null;
+        renderTabs();
+        setTimeout(()=>{dragMoved=false},50); // Prevents an accidental click after dragging
+      }
+    };
+    if(!isMouse)timer=setTimeout(start,350);
+    window.addEventListener("pointermove",move,{passive:false});
+    window.addEventListener("pointerup",end);
+    window.addEventListener("pointercancel",end);
+  });
+}
+
+function revealActiveTab(prevScroll){
+  tabsEl.scrollLeft=prevScroll;
+  const a=tabsEl.querySelector(".tab-btn.active");
+  if(!a)return;
+  const ar=a.getBoundingClientRect(),tr=tabsEl.getBoundingClientRect();
+  if(ar.left<tr.left)tabsEl.scrollTo({left:tabsEl.scrollLeft+ar.left-tr.left-8,behavior:"smooth"});
+  else if(ar.right>tr.right)tabsEl.scrollTo({left:tabsEl.scrollLeft+ar.right-tr.right+8,behavior:"smooth"});
+}
+
+function renderTabs(){
+  const prevScroll=tabsEl.scrollLeft;
+  const hasTabs=openTabs.length>0;
+  document.getElementById("close-all-btn").style.display=hasTabs?"":"none";
+  document.querySelector(".tabs-clear").style.display=hasTabs?"":"none";
+  document.querySelector(".add-wrap").style.display=hasTabs?"":"none";
+  tabsEl.innerHTML="";
+  openTabs.forEach(id=>{
+    const lang=getLang(id);
+    const btn=document.createElement("button");
+    btn.className="tab-btn"+(id===activeLang?" active":"");
+    btn.innerHTML=`${badge(lang)} ${lang.name}<span class="tab-close" title="Close">${svg("xmark",11)}</span>`;
+    btn.dataset.id=id;
+    btn.addEventListener("click",()=>{if(!dragMoved)switchTab(id)});
+    btn.addEventListener("contextmenu",e=>e.preventDefault());
+    attachDrag(btn);
+    btn.querySelector(".tab-close").addEventListener("click",e=>{e.stopPropagation();removeLanguage(id)});
+    tabsEl.appendChild(btn);
+  });
+  revealActiveTab(prevScroll);
+}
+
+function renderMenu(){
+  const prevMenuScroll=menuEl.scrollTop;
+  menuEl.innerHTML="";
+  LANGUAGES.forEach(lang=>{
+    const added=openTabs.includes(lang.id);
+    const m=lang.mode==="web"?"browser":lang.mode;
+    const item=document.createElement("div");
+    item.className="lang-item"+(added?" added":"");
+    item.innerHTML=`${badge(lang)} ${lang.name}`+(added?`<span class="check">${svg("check",12)}</span>`:"")+`<span class="mode-mini mode-${m}">${modeLabel(m)}</span>`;
+    item.addEventListener("click",()=>addLanguage(lang.id)); // menu stays open so several languages can be picked
+    menuEl.appendChild(item);
+  });
+  menuEl.scrollTop=prevMenuScroll;
+}
+
+function saveCurrent(){if(activeLang)codes[activeLang]=codeArea.value}
+
+// ================== Language picker (shown in the editor area while no tab is open) ==================
+const pickerEl=document.getElementById("picker");
+const picked=new Set();
+
+function renderPicker(){
+  const prevScroll=pickerEl.scrollTop;
+  pickerEl.innerHTML="";
+  const title=document.createElement("div");
+  title.className="picker-title";
+  title.textContent="Select Languages";
+  const grid=document.createElement("div");
+  grid.className="picker-grid";
+  LANGUAGES.forEach(lang=>{
+    const on=picked.has(lang.id);
+    const item=document.createElement("div");
+    item.className="picker-item"+(on?" selected":"");
+    item.innerHTML=`${badge(lang)} ${lang.name}<span class="picker-check">${on?svg("check",12):""}</span>`;
+    item.addEventListener("click",e=>{
+      // Double click: open this language directly
+      if(e.detail>=2){picked.clear();picked.add(lang.id);openPicked();return}
+      if(picked.has(lang.id))picked.delete(lang.id);else picked.add(lang.id);
+      renderPicker();
+    });
+    grid.appendChild(item);
+  });
+  const foot=document.createElement("div");
+  foot.className="picker-foot";
+  const btn=document.createElement("button");
+  btn.className="btn run-btn";
+  btn.type="button";
+  btn.disabled=!picked.size;
+  btn.style.cursor=picked.size?"pointer":"not-allowed";
+  btn.textContent="Open Selected"+(picked.size?" ("+picked.size+")":"");
+  btn.addEventListener("click",openPicked);
+  foot.appendChild(btn);
+  pickerEl.append(title,grid,foot);
+  pickerEl.scrollTop=prevScroll;
+}
+
+// Enter on the keyboard opens the selected languages (same as "Open Selected")
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey||e.isComposing)return;
+  if(activeLang||!picked.size)return; // only while the language picker is showing and something is selected
+  const t=e.target;
+  if(t&&(t.tagName==="TEXTAREA"||t.tagName==="INPUT"||t.isContentEditable))return;
+  e.preventDefault();
+  openPicked();
+});
+
+function openPicked(){
+  const ids=LANGUAGES.map(l=>l.id).filter(id=>picked.has(id));
+  if(!ids.length)return;
+  ids.forEach(id=>openTab(id));
+  picked.clear();
+  saveCurrent();activeLang=ids[0];
+  renderTabs();renderMenu();loadEditor();
+  scheduleRun(300);
+}
+
+// Preview panel: iframe for web languages, console otherwise
+function updatePanel(){
+  const web=isWeb(activeLang);
+  output.style.display=web?"block":"none";
+  consoleEl.style.display=web?"none":"block";
+  titleEl.textContent="LIVE OUTPUT";
+  modeTag.style.display="none";
+}
+
+// Hidden mirror of the textarea: measures how many visual rows each line takes once it wraps at the border
+const mirror=document.createElement("div");
+mirror.style.cssText="position:absolute;visibility:hidden;left:-9999px;top:0;padding:0;border:0;box-sizing:content-box;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;font-family:'Fira Code',monospace;font-size:14px;line-height:1.6";
+document.body.appendChild(mirror);
+function sizeMirror(){
+  const cs=getComputedStyle(codeArea);
+  mirror.style.width=Math.max(20,codeArea.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+"px";
+  return parseFloat(cs.lineHeight)||22.4;
+}
+function updateLineNumbers(){
+  const lh=sizeMirror(),lines=codeArea.value.split("\n");
+  mirror.textContent="";
+  const frag=document.createDocumentFragment();
+  lines.forEach(l=>{const d=document.createElement("div");d.textContent=l===""?"\u00a0":l;frag.appendChild(d)});
+  mirror.appendChild(frag);
+  // one block per logical line: exactly one number, as tall as the rows the line takes after wrapping
+  const nums=document.createDocumentFragment();
+  for(let i=0;i<lines.length;i++){
+    const rows=Math.max(1,Math.round(mirror.children[i].offsetHeight/lh));
+    const d=document.createElement("div");
+    d.textContent=i+1;d.style.height=(rows*lh)+"px";
+    nums.appendChild(d);
+  }
+  lineNumbers.textContent="";
+  lineNumbers.appendChild(nums);
+  lineNumbers.scrollTop=codeArea.scrollTop;
+}
+if(window.ResizeObserver)new ResizeObserver(()=>updateLineNumbers()).observe(codeArea);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>updateLineNumbers());
+
+function loadEditor(){
+  pickerEl.style.display=activeLang?"none":"flex";
+  if(!activeLang)renderPicker();
+  codeArea.disabled=!activeLang;
+  codeArea.value=activeLang?(codes[activeLang]??""):"";
+  updateLineNumbers();
+  updatePanel();
+}
+
+function switchTab(id){
+  saveCurrent();activeLang=id;
+  renderTabs();renderMenu();loadEditor();
+  runActive();
+}
+
+function openTab(id){
+  if(openTabs.includes(id))return;
+  openTabs.push(id);
+  codes[id]=EXAMPLES[id]; // every new tab starts with an example
+}
+
+function addLanguage(id){
+  openTab(id);
+  saveCurrent();activeLang=id;
+  renderTabs();renderMenu();loadEditor();
+  scheduleRun(300); // short delay so picking several languages in a row runs only once
+}
+
+function removeLanguage(id){
+  saveCurrent();
+  const i=openTabs.indexOf(id);
+  delete runCache[id];
+  openTabs.splice(i,1);
+  delete codes[id];
+  if(activeLang===id)activeLang=openTabs[Math.min(i,openTabs.length-1)]||null;
+  renderTabs();renderMenu();loadEditor();
+  runActive();
+}
+
+function closeAllTabs(){
+  if(!openTabs.length)return;
+  runId++;
+  openTabs=[];codes={};activeLang=null;for(const k in runCache)delete runCache[k];
+  renderTabs();renderMenu();loadEditor();
+  output.srcdoc=blankDoc();consoleEl.textContent="";
+}
+// ================== Confirm dialog ==================
+const confirmOv=document.getElementById("confirm-ov"),confirmMsg=document.getElementById("confirm-msg");
+let confirmAction=null;
+function askConfirm(msg,action){confirmMsg.textContent=msg;confirmAction=action;confirmOv.classList.add("show");document.getElementById("confirm-no").focus()}
+function closeConfirm(){confirmOv.classList.remove("show");confirmAction=null}
+document.getElementById("confirm-yes").addEventListener("click",()=>{const a=confirmAction;closeConfirm();if(a)a()});
+document.getElementById("confirm-no").addEventListener("click",closeConfirm);
+confirmOv.addEventListener("click",e=>{if(e.target===confirmOv)closeConfirm()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&confirmOv.classList.contains("show"))closeConfirm()});
+function confirmClear(){
+  askConfirm("This will clear all the code in the current tab. Do you want to continue?",resetCode);
+}
+document.getElementById("close-all-btn").addEventListener("click",()=>{
+  askConfirm("This will close all open tabs and remove their code. Do you want to continue?",closeAllTabs);
+});
+
+// ================== Web preview (HTML + CSS + JS together) ==================
+// JavaScript console.log / errors are shown inside the preview itself.
+const CONSOLE_HOOK=`<script>
+(function(){
+  var ER=window.__dark?'#ff6b81':'#d00',WN=window.__dark?'#e6b450':'#b80';
+  function box(){var b=document.getElementById('__c');if(!b){b=document.createElement('div');b.id='__c';document.body.appendChild(b)}return b}
+  function w(t,c){var b=box();b.style.cssText='font:13px/1.6 monospace;white-space:pre-wrap;border-top:1px dashed #999;margin-top:12px;padding-top:8px;color:'+(window.__dark?'#dfe3f2':'#222');var d=document.createElement('div');if(c)d.style.color=c;d.textContent=t;b.appendChild(d)}
+  function f(a){return a.map(function(x){if(x instanceof Error)return x.stack||x.message;if(typeof x==='object'&&x!==null){try{return JSON.stringify(x)}catch(e){return String(x)}}return String(x)}).join(' ')}
+  ['log','info','warn','error'].forEach(function(k){
+    var o=console[k];
+    console[k]=function(){var a=[].slice.call(arguments);w(f(a),k==='error'?ER:k==='warn'?WN:'');o.apply(console,a)};
+  });
+  window.addEventListener('error',function(e){w('Error: '+e.message,ER)});
+  window.addEventListener('unhandledrejection',function(e){w('Error: '+(e.reason&&e.reason.message||e.reason),ER)});
+})();
+<\/script>`;
+
+// Preview area follows the theme: dark by default in dark mode (page code can still set its own colors)
+const previewCss=()=>theme==="dark"?":root{color-scheme:dark}body{background:#1a1c23;color:#dfe3f2}":"";
+const themeTag=()=>`<style id="__dm">${previewCss()}</style>`;
+function blankDoc(){return `<!DOCTYPE html><html><head><meta charset="UTF-8">${themeTag()}</head><body></body></html>`}
+function syncPreviewTheme(){ // switching theme: recolor the open preview without re-running the code
+  try{const st=output.contentDocument&&output.contentDocument.getElementById("__dm");if(st)st.textContent=previewCss()}catch(e){}
+}
+function runWeb(data){
+  saveCurrent();
+  const html=openTabs.includes("html")?(codes.html??""):"";
+  const css=openTabs.includes("css")?(codes.css??""):"";
+  const js=openTabs.includes("javascript")?(codes.javascript??""):"";
+  // With "Run All", results from other languages are available in JS as INPUT (last output) and OUTPUTS (by language id)
+  const safe=v=>JSON.stringify(v).replace(/</g,"\\u003c");
+  const inj=data?`<script>window.INPUT=${safe(data.INPUT)};window.OUTPUTS=${safe(data.OUTPUTS)};<\/script>`:"";
+  const dk=theme==="dark"?"<script>window.__dark=true<\/script>":"";
+  output.srcdoc=`<!DOCTYPE html><html><head><meta charset="UTF-8">${themeTag()}<style>${css}</style></head><body>${html}<div id="__c"></div>${inj}${dk}${CONSOLE_HOOK}<script>${js}<\/script></body></html>`;
+}
+
+// ================== Run in browser (no server) ==================
+const scriptCache={};
+function loadScript(src){
+  return scriptCache[src]||(scriptCache[src]=new Promise((res,rej)=>{
+    const s=document.createElement("script");s.src=src;s.onload=res;
+    s.onerror=()=>{delete scriptCache[src];rej(new Error("Failed to load library: "+src))};
+    document.head.appendChild(s);
+  }));
+}
+const fmt=a=>a.map(x=>{
+  if(x instanceof Error)return x.message;
+  if(typeof x==="object"&&x!==null){try{return JSON.stringify(x)}catch(e){return String(x)}}
+  return String(x);
+}).join(" ");
+
+async function capture(fn){
+  const out=[],orig={};
+  ["log","info","warn","error"].forEach(k=>{orig[k]=console[k];console[k]=(...a)=>out.push(fmt(a))});
+  try{await fn()}finally{Object.keys(orig).forEach(k=>console[k]=orig[k])}
+  return out.join("\n");
+}
+
+async function runPython(code,input=""){
+  await loadScript("https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js");
+  window.__py=window.__py||await loadPyodide();
+  const out=[],all=[];
+  if(input){
+    const lines=input.replace(/\n$/,"").split("\n");
+    window.__py.setStdin({stdin:()=>lines.length?lines.shift():undefined});
+  }else window.__py.setStdin();
+  window.__py.setStdout({batched:s=>{out.push(s);all.push(s)}});
+  window.__py.setStderr({batched:s=>all.push(s)});
+  await window.__py.runPythonAsync(code);
+  return {text:all.join("\n"),stdout:out.join("\n")};
+}
+
+async function runTS(code,input=""){
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js");
+  const js=ts.transpileModule(code,{compilerOptions:{target:"ES2020"}}).outputText;
+  const AsyncFn=Object.getPrototypeOf(async function(){}).constructor;
+  return capture(()=>new AsyncFn("input",js)(input));
+}
+
+async function runSQL(code){
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js");
+  const SQL=await initSqlJs({locateFile:f=>"https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/"+f});
+  const db=new SQL.Database();
+  const res=db.exec(code);
+  if(!res.length)return "(Done — no results to display)";
+  return res.map(t=>[t.columns.join(" | "),"-".repeat(t.columns.join(" | ").length),...t.values.map(r=>r.join(" | "))].join("\n")).join("\n\n");
+}
+
+async function runLua(code,input=""){
+  await loadScript("https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js");
+  // Piped input is available as the global string INPUT (bytes encoded as decimal escapes, kept on the same line so error line numbers don't shift)
+  const bytes=new TextEncoder().encode(input||"");
+  const lit='"'+[...bytes].map(b=>"\\"+String(b).padStart(3,"0")).join("")+'"';
+  return capture(()=>fengari.load("INPUT="+lit+";"+code)());
+}
+
+// ================== Run on server (Judge0) ==================
+// JVM languages (Scala/Java/Kotlin) get more memory/time, retry if limits are rejected,
+// fall back to name lookup if the language isn't matched, poll if "wait" isn't supported,
+// and show full compile errors.
+const langCache={};
+const enc=s=>btoa(unescape(encodeURIComponent(s)));
+const dec=s=>s?decodeURIComponent(escape(atob(s))):"";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function judgeSubmit(host,body){
+  const q="?base64_encoded=true&fields=*";
+  let r=await fetch(host+"/submissions"+q+"&wait=true",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  let d=await r.json().catch(()=>({}));
+  if(r.ok&&d.status&&d.status.id>2)return {ok:true,data:d};
+  if(r.ok&&d.token||(!r.ok&&/wait/i.test(JSON.stringify(d)))){
+    if(!d.token){
+      r=await fetch(host+"/submissions"+q,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      d=await r.json().catch(()=>({}));
+      if(!r.ok)return {ok:false,data:d};
+    }
+    for(let i=0;i<40;i++){
+      await sleep(1200);
+      const p=await (await fetch(host+"/submissions/"+d.token+q)).json();
+      if(p.status&&p.status.id>2)return {ok:true,data:p};
+    }
+    return {ok:false,data:{error:"Timeout"}};
+  }
+  return {ok:r.ok,data:d};
+}
+
+async function runServer(lang,code,input=""){
+  let lastErr="Could not connect to any server";
+  for(const host of JUDGE_HOSTS){
+    try{
+      if(!langCache[host])langCache[host]=await (await fetch(host+"/languages")).json();
+      let list=langCache[host].filter(l=>JUDGE_MATCH[lang.id].test(l.name));
+      if(!list.length)list=langCache[host].filter(l=>new RegExp(lang.name.replace(/[+#]/g,"\\$&"),"i").test(l.name));
+      const found=list.sort((a,b)=>b.id-a.id)[0];
+      if(!found){lastErr=lang.name+" is not available on this server ("+host+")";continue}
+
+      const jvm=["scala","java","kotlin"].includes(lang.id);
+      const sin=input?{stdin:enc(input)}:{};
+      const base={source_code:enc(code),language_id:found.id,cpu_time_limit:jvm?15:10,wall_time_limit:jvm?20:15,...sin};
+      let res=await judgeSubmit(host,jvm?{...base,memory_limit:512000}:base);
+      if(!res.ok&&jvm){ // If the server rejects custom limits, retry with default limits
+        res=await judgeSubmit(host,{source_code:enc(code),language_id:found.id,...sin});
+      }
+      if(!res.ok){lastErr=JSON.stringify(res.data);continue}
+
+      const d=res.data;
+      const st=d.status&&d.status.id>3?"["+d.status.description+"]":"";
+      // Hide internal "WARNING:" lines from JVM languages (Kotlin/Java/Scala); real errors are kept
+      // Also hide Dart compiler's "Info: Compiling..." / "Generated: ..." lines
+      const NOISE=/^(WARNING:|Info: Compiling with sound null safety|Generated: \/box\/)/;
+      const clean=t=>t.split("\n").filter(l=>!NOISE.test(l)).join("\n").trim();
+      const text=[dec(d.stdout),clean(dec(d.stderr)),clean(dec(d.compile_output)),dec(d.message),st].filter(Boolean).join("\n");
+      return {text:text||"(No output)",stdout:dec(d.stdout),error:d.status&&d.status.id>3};
+    }catch(e){lastErr=e.message}
+  }
+  throw new Error(lastErr);
+}
+
+// ================== Run / Reset / Download ==================
+// Runs one non-web language and returns {text, stdout, error}
+async function runOne(lang,code,input=""){
+  if(lang.mode==="server"){
+    const r=await runServer(lang,code,input);
+    return {text:r.text,stdout:r.stdout,error:r.error};
+  }
+  let r;
+  if(lang.id==="python")r=await runPython(code,input);
+  else if(lang.id==="typescript")r=await runTS(code,input);
+  else if(lang.id==="sql")r=await runSQL(code);
+  else r=await runLua(code,input);
+  if(typeof r==="string")r={text:r,stdout:r};
+  return {text:r.text,stdout:r.stdout,error:false};
+}
+
+// ================== Run the active tab (automatic) ==================
+// Only the tab you are viewing runs. HTML, CSS and JavaScript are the exception: they are
+// combined into one live preview, because a web page needs all three together.
+// Results are cached per tab, so switching back to an unchanged tab is instant.
+async function runActive(){
+  saveCurrent();
+  const my=++runId;
+  updatePanel();
+  if(!activeLang){output.srcdoc=blankDoc();consoleEl.textContent="";return}
+  const id=activeLang,lang=getLang(id);
+  if(lang.mode==="web"){runWeb();return}
+  const code=codes[id]||"";
+  if(!code.trim()){consoleEl.className="";consoleEl.textContent="";return}
+  const show=r=>{consoleEl.className=r.error?"err":"";consoleEl.textContent=r.text||"(No output)"};
+  if(runCache[id]&&runCache[id].key===code){show(runCache[id].r);return}
+  consoleEl.className="info";
+  consoleEl.textContent=lang.mode==="server"?"Running on server... (JVM languages may take 10–20 seconds)":"Running... (the first run may take a moment to load libraries)";
+  try{
+    const r=await runOne(lang,code);
+    if(my!==runId)return; // A newer run started
+    runCache[id]={key:code,r};
+    show(r);
+  }catch(e){
+    if(my!==runId)return;
+    show({text:"Error: "+(e&&e.message||e),error:true});
+  }
+}
+
+function resetCode(){
+  if(!activeLang)return;
+  codeArea.value="";
+  codes[activeLang]="";
+  updateLineNumbers();
+  scheduleRun(300);
+}
+
+function downloadCode(){
+  if(!activeLang)return;
+  const lang=getLang(activeLang);
+  const blob=new Blob([codeArea.value],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=lang.file||("main."+lang.ext);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ================== Events ==================
+let timer;
+function scheduleRun(ms){clearTimeout(timer);timer=setTimeout(runActive,ms)}
+codeArea.addEventListener("input",()=>{
+  updateLineNumbers();saveCurrent();
+  clearTimeout(timer);
+  if(!activeLang)return;
+  const mode=getLang(activeLang).mode;
+  scheduleRun(mode==="web"?350:mode==="browser"?600:1500);
+});
+codeArea.addEventListener("scroll",()=>{lineNumbers.scrollTop=codeArea.scrollTop});
+codeArea.addEventListener("keydown",e=>{
+  if(e.key==="Tab"){
+    e.preventDefault();
+    const multi=codeArea.value.slice(codeArea.selectionStart,codeArea.selectionEnd).includes("\n");
+    if(e.shiftKey||multi){indentLines(e.shiftKey?-1:1);return}
+    const s=codeArea.selectionStart;
+    codeArea.setRangeText("    ",s,codeArea.selectionEnd,"end");
+    codeArea.dispatchEvent(new Event("input"));
+  }else if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();runActive()}
+  else if((e.ctrlKey||e.metaKey)&&e.key==="/"){e.preventDefault();toggleComment()}
+});
+// ================== Auto-close brackets/quotes — rules per language ==================
+// pairs: which opening chars auto-close | triple: """ / ''' | block: /* */ | prefix: string prefixes (f"", r"", L"" ...)
+// lt: how "<" is handled ("always" = HTML tags, "generic" = List< Map< vector< template< , plus #include <)
+const Q="\"'";
+const LANG_SYMBOLS={
+  python:{pairs:"()[]{}"+Q,triple:1,prefix:/(?:^|[^\w])(?:[rRbBuUfF]{1,2})$/},
+  html:{pairs:"()[]{}"+Q+"`<",lt:"always",htmlComment:1},
+  css:{pairs:"()[]{}"+Q,block:1},
+  javascript:{pairs:"()[]{}"+Q+"`",block:1},
+  typescript:{pairs:"()[]{}"+Q+"`<",lt:"generic",block:1},
+  sql:{pairs:"()[]"+Q+"`",block:1},
+  lua:{pairs:"()[]{}"+Q},
+  java:{pairs:"()[]{}"+Q+"<",lt:"generic",triple:1,block:1},
+  c:{pairs:"()[]{}"+Q+"<",lt:"include",block:1,prefix:/(?:^|[^\w])(?:L|u|U|u8)$/},
+  cpp:{pairs:"()[]{}"+Q+"<",lt:"generic",block:1,prefix:/(?:^|[^\w])(?:L|u|U|u8|R|LR|uR|UR|u8R)$/},
+  csharp:{pairs:"()[]{}"+Q+"<",lt:"generic",triple:1,block:1},
+  php:{pairs:"()[]{}"+Q+"`",block:1},
+  go:{pairs:"()[]{}"+Q+"`",block:1},
+  rust:{pairs:"()[]{}"+Q+"<|",pipe:/(?:[(,=]|\bmove)\s*$/,lt:"generic",turbofish:1,lifetime:1,block:1,prefix:/(?:^|[^\w])(?:b|r|br|rb|c|cr)$/},
+  kotlin:{pairs:"()[]{}"+Q+"<",lt:"generic",triple:1,block:1},
+  swift:{pairs:"()[]{}"+Q+"<",lt:"generic",triple:1,block:1},
+  ruby:{pairs:"()[]{}"+Q+"`|",pipe:/(?:\{|\bdo)\s*$/},
+  dart:{pairs:"()[]{}"+Q+"<",lt:"generic",triple:1,block:1,prefix:/(?:^|[^\w])r$/},
+  r:{pairs:"()[]{}"+Q+"`",prefix:/(?:^|[^\w])[rR]$/},
+  scala:{pairs:"()[]{}"+Q,triple:1,block:1,prefix:/(?:^|[^\w])(?:s|f|raw)$/}
+};
+const VOID_TAGS=new Set("area base br col embed hr img input link meta param source track wbr".split(" "));
+const CLOSE_OF={"(":")","[":"]","{":"}","<":">",'"':'"',"'":"'","`":"`","|":"|"};
+const GENERIC_KW=/^(?:impl|template|typename|function|vector|map|set|list|array|deque|queue|stack|pair|tuple|optional|variant|span|bitset|multimap|multiset|unordered_map|unordered_set|priority_queue|unique_ptr|shared_ptr|weak_ptr|atomic|static_cast|dynamic_cast|reinterpret_cast|const_cast|make_pair|make_shared|make_unique)$/;
+function genericOK(before,cfg){
+  const w=(before.match(/[A-Za-z_]\w*$/)||[""])[0];
+  if(!w)return !!cfg.turbofish&&before.endsWith("::");
+  if(/^[A-Z]/.test(w)||GENERIC_KW.test(w))return true;
+  // declaration names: fn foo< , class foo< , def foo< ...
+  return /\b(?:fn|struct|enum|trait|type|class|interface|fun|func|def|function)\s+\w+$/.test(before);
+}
+// ================== Auto-add missing line endings (; : then/do/end) when Enter is pressed ==================
+const SEMI_LANGS=new Set(["javascript","typescript","java","c","cpp","csharp","php","rust","dart"]);
+const MODS="(?:(?:public|private|protected|internal|static|final|abstract|sealed|partial|export|default|async|unsafe|pub|override|virtual|readonly|extern|const)\\s+)*";
+const RE_BLOCKDECL=new RegExp("^"+MODS+"(?:class|interface|enum|struct|namespace|trait|impl|mod|function|fn|record|extension|mixin)\\b");
+const RE_CONTROL=/^(?:if|else|for|foreach|while|switch|catch|elseif|elif|using\s*\(|lock|fixed|match)\b/;
+const RE_LONE_KW=/^(?:else|do|try|finally|loop|unsafe|default)$/;
+const RE_BARE_OK=/^(?:break|continue|return|yield|exit|die)$/;
+const RE_NOTDECL=/^(?:return|throw|new|await|yield|delete|else|case|goto|print|echo|typeof|const|let|var|use)\b/;
+const RE_METHOD=/^[\w<>\[\],:*&.\s]+\s+[\w~]+\s*\([^;=]*\)\s*(?:const|override|noexcept|throws\s+[\w, .]+)?$/;
+function endFix(id,line,prev){
+  const t=line.trim();
+  if(!t)return "";
+  const strip=t.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`[^`]*`/g,'""');
+  const cnt=re=>(strip.match(re)||[]).length;
+  if(cnt(/\(/g)!==cnt(/\)/g)||cnt(/\[/g)!==cnt(/\]/g)||cnt(/\{/g)!==cnt(/\}/g))return "";
+  if(id==="python"){ // if/for/def/class... -> add ":"
+    if(/#/.test(strip)||/[:,\\]$/.test(strip))return "";
+    if(/^(?:else|try|finally)$/.test(t))return ":";
+    if(!/^(?:if|elif|for|while|with|def|class|except|async\s+(?:def|for|with)|match|case)\b/.test(t))return "";
+    let r=strip,p;do{p=r;r=r.replace(/\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}/g,"")}while(r!==p);
+    return r.includes(":")?"":":";
+  }
+  if(id==="lua"){ // if ... -> then, for/while ... -> do
+    if(/--/.test(strip))return "";
+    if(/^(?:if|elseif)\s+\S/.test(t)&&!/\bthen\b/.test(t))return " then";
+    if(/^(?:for|while)\s+\S/.test(t)&&!/\bdo\b/.test(t))return " do";
+    return "";
+  }
+  if(id==="sql"){ // finished INSERT / CREATE TABLE / DROP -> ";"
+    if(/--/.test(strip)||/[;,(]$/.test(strip))return "";
+    if(/^(?:insert\s+into|create\s+table)\b/i.test(t)&&/\)$/.test(strip))return ";";
+    if(/^drop\s+\w+\s+(?:if\s+exists\s+)?\w+$/i.test(t))return ";";
+    return "";
+  }
+  if(id==="css"){ // property: value -> add ";"
+    if(/[;{},]$/.test(strip)||t[0]==="@"||/^\/\*|\*\/$/.test(t))return "";
+    const o=(prev.match(/\{/g)||[]).length-(prev.match(/\}/g)||[]).length;
+    return o>0&&/^[\w-]+\s*:\s*\S/.test(t)?";":"";
+  }
+  if(!SEMI_LANGS.has(id))return "";
+  if((id==="php"?/\/\/|\/\*|#/:/\/\/|\/\*/).test(strip))return "";
+  if(/^(?:#|@|\*|\.|\?|:|\}|\]|<\?|\?>)/.test(t))return "";
+  if(/(?:\+\+|--)$/.test(strip))return ";";
+  if(/[;{(,\[:.+\-*\/%=<>&|^!?\\]$/.test(strip))return "";
+  if(RE_BLOCKDECL.test(t)||RE_CONTROL.test(t)||RE_LONE_KW.test(t))return "";
+  if(/^[A-Za-z_$][\w$]*$/.test(t)&&!RE_BARE_OK.test(t))return "";
+  if(/^(?:["'`]|\d)/.test(t))return "";
+  if(/^[\w$'"-]+\s*:(?!:)\s*\S/.test(t))return "";
+  if(/\bfunction\b\s*[\w$]*\s*\([^)]*\)$/.test(strip))return "";
+  if(!RE_NOTDECL.test(t)&&RE_METHOD.test(strip)&&/\)$/.test(strip))return "";
+  if(id==="rust"&&!(/^(?:let|use|const|static|return|break|continue|type|mod)\b/.test(t)||/!\s*[(\[{]/.test(strip)||/(?:^|[^=!<>])=(?!=)/.test(strip)))return "";
+  return ";";
+}
+// Ruby / Lua: after "def", "if", "function"... add the closing "end" automatically
+function needsEnd(id,line,after){
+  const t=line.trim(),rows=after.split("\n");
+  if(!t||rows[0].trim())return false;
+  const nl=rows.slice(1).find(l=>l.trim())||"",ind=l=>l.match(/^\s*/)[0].length;
+  if(/^end\b/.test(nl.trim())||ind(nl)>ind(line))return false; // already closed, or a body already exists
+  if(/\bend$/.test(t))return false;
+  if(id==="ruby")return !/#/.test(t)&&(/^(?:def|class|module|if|unless|while|until|for|case|begin)\b/.test(t)||/\bdo(?:\s*\|[^|]*\|)?$/.test(t));
+  if(/--/.test(t))return false;
+  return /^(?:local\s+)?function\b/.test(t)||/\bfunction\s*[\w.:]*\s*\([^)]*\)$/.test(t)||/^(?:if\b.*\bthen|(?:for|while)\b.*\bdo|do)$/.test(t);
+}
+// Enter on a bare "print" / "console.log" / "println!" ...: add "()" and put the caret inside
+const BARE_CALLS={
+  python:"print input",javascript:"console.log console.error console.warn alert",typescript:"console.log console.error console.warn alert",
+  java:"System.out.println System.out.print",c:"printf",csharp:"Console.WriteLine Console.Write",go:"fmt.Println fmt.Print fmt.Printf",
+  rust:"println! print! eprintln!",kotlin:"println print",swift:"print",dart:"print",r:"print cat",scala:"println print",lua:"print",php:"var_dump print_r"
+};
+function applyBareCall(){
+  const ta=codeArea,s=ta.selectionStart,v=ta.value,set=activeLang&&BARE_CALLS[activeLang];
+  if(!set||s!==ta.selectionEnd)return false;
+  const ls=v.lastIndexOf("\n",s-1)+1,i=v.indexOf("\n",s),le=i<0?v.length:i;
+  if(v.slice(s,le).trim())return false;
+  const t=v.slice(ls,s).trim();
+  if(!set.split(" ").includes(t))return false;
+  const p=ls+v.slice(ls,s).replace(/\s+$/,"").length;
+  ta.setRangeText("()",p,s,"end");ta.setSelectionRange(p+1,p+1);
+  return true;
+}
+// Called right before Enter is handled: appends the missing ending to the current line
+function applyAutoEnd(){
+  const ta=codeArea,s=ta.selectionStart,v=ta.value;
+  if(!activeLang||s!==ta.selectionEnd)return;
+  const ls=v.lastIndexOf("\n",s-1)+1,i=v.indexOf("\n",s),le=i<0?v.length:i;
+  if(v.slice(s,le).trim())return; // there is text after the caret
+  const line=v.slice(ls,s),fx=endFix(activeLang,line,v.slice(0,ls));
+  if(fx){const p=ls+line.replace(/\s+$/,"").length;ta.setRangeText(fx,p,p,"preserve")}
+}
+codeArea.addEventListener("beforeinput",e=>{
+  if(e.isComposing||!activeLang)return;
+  const cfg=LANG_SYMBOLS[activeLang];if(!cfg)return;
+  const ta=codeArea,s=ta.selectionStart,en=ta.selectionEnd,v=ta.value;
+  const fire=()=>ta.dispatchEvent(new Event("input"));
+  const isWord=c=>/\w/.test(c);
+  const has=c=>cfg.pairs.includes(c);
+  const before=v.slice(0,s);
+
+  if(e.inputType==="insertText"&&e.data&&e.data.length===1){
+    const ch=e.data,prev=v[s-1]||"",next=v[en]||"";
+
+    // 0) HTML: typing ">" of an opening tag inserts the closing tag </div>
+    if(s===en&&ch===">"&&cfg.htmlComment){
+      const lt=v.lastIndexOf("<",s-1);
+      if(lt>=0&&v.lastIndexOf(">",s-1)<lt){
+        const m=v.slice(lt,s).match(/^<([A-Za-z][\w:.-]*)(\s[^<>]*)?$/);
+        if(m&&!v.slice(lt,s).endsWith("/")&&!VOID_TAGS.has(m[1].toLowerCase())){
+          const tag=m[1].replace(/[.*+?^${}()|[\]\\-]/g,"\\$&");
+          const full=v.slice(0,s)+">"+v.slice(next===">"?en+1:en);
+          const opens=(full.match(new RegExp("<"+tag+"(?=[\\s>/])","gi"))||[]).length;
+          const closes=(full.match(new RegExp("</"+tag+"\\s*>","gi"))||[]).length;
+          if(opens>closes){
+            e.preventDefault();
+            ta.setRangeText(">"+"</"+m[1]+">",s,next===">"?en+1:en,"end");
+            ta.setSelectionRange(s+1,s+1);fire();return;
+          }
+        }
+      }
+    }
+    // 1) typing a closing char right before the same char: just move over it
+    if(s===en&&next===ch&&[...cfg.pairs].some(o=>CLOSE_OF[o]===ch)){
+      e.preventDefault();ta.setSelectionRange(s+1,s+1);return;
+    }
+    // 2) a "<" that was auto-paired turned out to be an operator (x<5, a<=b, 1<<2): drop the extra ">"
+    if(s===en&&has("<")&&cfg.lt!=="always"&&prev==="<"&&next===">"&&/[\s=<\d+\-!]/.test(ch)){
+      ta.setRangeText("",s,s+1,"preserve"); // then the typed char is inserted normally
+    }
+    // 3) comment openers
+    if(s===en&&cfg.block&&ch==="*"&&prev==="/"&&next!=="*"){
+      e.preventDefault();ta.setRangeText("*  */",s,en,"end");ta.setSelectionRange(s+2,s+2);fire();return;
+    }
+    if(s===en&&cfg.htmlComment&&ch==="-"&&before.endsWith("<!-")){
+      e.preventDefault();ta.setRangeText("-  -->",s,next===">"?en+1:en,"end");ta.setSelectionRange(s+2,s+2);fire();return; // also replaces the auto ">"
+    }
+
+    if(!has(ch))return;
+    const close=CLOSE_OF[ch];
+
+    // 4) wrap selected text
+    if(s!==en){
+      e.preventDefault();
+      ta.setRangeText(ch+v.slice(s,en)+close,s,en,"preserve");
+      ta.setSelectionRange(s+1,en+1);fire();return;
+    }
+    // 5) triple quotes (""" / ''')
+    if(cfg.triple&&(ch==='"'||ch==="'")&&v.slice(s-2,s)===ch+ch&&v[s-3]!==ch&&!isWord(next)){
+      e.preventDefault();ta.setRangeText(ch+ch+ch+ch,s,en,"end");ta.setSelectionRange(s+1,s+1);fire();return;
+    }
+    // 6) context rules
+    if(close===ch){ // quotes / backtick / pipe
+      if(ch==="|"){if(!cfg.pipe.test(before)||isWord(next))return}
+      else{
+        const prefixed=cfg.prefix&&(ch==='"'||ch==="'")&&cfg.prefix.test(before);
+        if(isWord(prev)&&!prefixed)return;            // don't -> no auto-quote
+        if(isWord(next))return;
+        if(cfg.lifetime&&ch==="'"&&/[<&]\s*$|:\s*$/.test(before))return; // Rust lifetimes 'a
+      }
+    }else{ // brackets
+      if(isWord(next))return;
+      if(ch==="<"){
+        const ok=cfg.lt==="always"||(cfg.lt==="include"||cfg.lt==="generic")&&/#\s*include\s*$/.test(before)||(cfg.lt==="generic"&&genericOK(before,cfg));
+        if(!ok)return;
+      }
+    }
+    e.preventDefault();
+    ta.setRangeText(ch+close,s,en,"end");
+    ta.setSelectionRange(s+1,s+1);fire();
+
+  }else if(e.inputType==="insertLineBreak"&&applyBareCall()){
+    e.preventDefault();fire();keepCaretVisible();
+  }else if(e.inputType==="insertLineBreak"&&(applyAutoEnd(),true)){
+    const s=ta.selectionStart,en=ta.selectionEnd,v=ta.value,before=v.slice(0,s); // re-read: a ; or : may have been added
+    // Enter: keep indentation; extra indent after { ( [ (and Python ":"); between a pair -> expand to 3 lines
+    const IND="    ",ls=v.lastIndexOf("\n",s-1)+1,line=v.slice(ls,s);
+    const indent=line.match(/^[ \t]*/)[0],prevCh=v[s-1]||"",nextCh=v[en]||"";
+    const between=("{([".includes(prevCh)&&has(prevCh)&&CLOSE_OF[prevCh]===nextCh)||
+      (cfg.htmlComment&&prevCh===">"&&v.slice(en,en+2)==="</"&&/<[A-Za-z][^<>]*>$/.test(before));
+    const blk=(activeLang==="ruby"||activeLang==="lua")&&needsEnd(activeLang,line,v.slice(en));
+    let text,caret;
+    if(between){text="\n"+indent+IND+"\n"+indent;caret=s+1+indent.length+IND.length}
+    else if(blk){text="\n"+indent+IND+"\n"+indent+"end";caret=s+1+indent.length+IND.length}
+    else{
+      const more=("{([".includes(prevCh)&&has(prevCh))||(activeLang==="python"&&/:\s*$/.test(line)&&!/^\s*#/.test(line)&&(nextCh===""||nextCh==="\n"));
+      text="\n"+indent+(more?IND:"");caret=s+text.length;
+    }
+    e.preventDefault();
+    ta.setRangeText(text,s,en,"end");ta.setSelectionRange(caret,caret);fire();keepCaretVisible();
+  }else if(e.inputType==="deleteContentBackward"&&s===en&&s>0){
+    // Backspace between an empty pair removes both
+    const a=v[s-1],b=v[s];
+    if(has(a)&&CLOSE_OF[a]===b){e.preventDefault();ta.setRangeText("",s-1,s+1,"end");fire()}
+  }
+});
+// Scroll so the caret stays visible after programmatic edits (line-height 1.6 x 14px, padding 15px, no wrapping)
+function keepCaretVisible(){
+  const ta=codeArea,lh=sizeMirror();
+  mirror.textContent=ta.value.slice(0,ta.selectionStart)+"\u200b";
+  const line=Math.max(1,Math.round(mirror.offsetHeight/lh)); // visual row of the caret (wrapped rows counted)
+  const bottom=15+line*lh,top=15+(line-1)*lh;
+  if(bottom>ta.scrollTop+ta.clientHeight)ta.scrollTop=bottom-ta.clientHeight+lh;
+  else if(top<ta.scrollTop)ta.scrollTop=Math.max(0,top-lh);
+  lineNumbers.scrollTop=ta.scrollTop;
+}
+function selectedLineRange(){
+  const ta=codeArea,v=ta.value,s=ta.selectionStart,en=ta.selectionEnd;
+  const ls=v.lastIndexOf("\n",s-1)+1,e2=(en>s&&v[en-1]==="\n")?en-1:en,i=v.indexOf("\n",e2);
+  return {ls,le:i<0?v.length:i};
+}
+// Tab / Shift+Tab on several lines: indent / outdent them
+function indentLines(dir){
+  const ta=codeArea,{ls,le}=selectedLineRange(),s=ta.selectionStart,en=ta.selectionEnd;
+  const old=ta.value.slice(ls,le),lines=old.split("\n");
+  const out=lines.map(l=>dir>0?(l.trim()?"    "+l:l):l.replace(/^(?: {1,4}|\t)/,""));
+  const text=out.join("\n");
+  ta.setRangeText(text,ls,le,"preserve");
+  if(s===en){const d=out[0].length-lines[0].length;const c=Math.max(ls,s+d);ta.setSelectionRange(c,c)}
+  else ta.setSelectionRange(ls,ls+text.length);
+  ta.dispatchEvent(new Event("input"));
+}
+// Ctrl+/ : comment / uncomment the selected lines (comment style depends on the language)
+function toggleComment(){
+  if(!activeLang)return;
+  const ta=codeArea,{ls,le}=selectedLineRange(),s=ta.selectionStart,en=ta.selectionEnd;
+  const tok={python:"#",ruby:"#",r:"#",sql:"--",lua:"--",html:["<!--","-->"],css:["/*","*/"]}[activeLang]||"//";
+  const esc=x=>x.replace(/[.*+?^${}()|[\]\\\/-]/g,"\\$&");
+  const lines=ta.value.slice(ls,le).split("\n"),body=lines.filter(l=>l.trim());
+  if(!body.length)return;
+  const isArr=Array.isArray(tok),o=isArr?tok[0]:tok,c=isArr?tok[1]:"";
+  const reC=new RegExp("^(\\s*)"+esc(o)+" ?(.*?)"+(isArr?" ?"+esc(c)+"\\s*":"")+"$");
+  const all=body.every(l=>reC.test(l));
+  let out;
+  if(all)out=lines.map(l=>reC.test(l)?l.replace(reC,"$1$2"):l);
+  else{
+    const min=Math.min(...body.map(l=>l.match(/^\s*/)[0].length));
+    out=lines.map(l=>l.trim()?l.slice(0,min)+o+" "+l.slice(min)+(isArr?" "+c:""):l);
+  }
+  const text=out.join("\n"),oldLen=le-ls;
+  ta.setRangeText(text,ls,le,"preserve");
+  if(s===en){const cpos=Math.max(ls,s+text.length-oldLen);ta.setSelectionRange(cpos,cpos)}
+  else ta.setSelectionRange(ls,ls+text.length);
+  ta.dispatchEvent(new Event("input"));
+}
+addBtn.addEventListener("click",e=>{e.stopPropagation();menuEl.classList.toggle("show")});
+document.addEventListener("click",e=>{if(!e.composedPath().includes(menuEl))menuEl.classList.remove("show")});
+
+// ================== Tooltips (mouse hover + touch long-press) ==================
+const tipEl=document.createElement("div");
+tipEl.id="tip";
+document.body.appendChild(tipEl);
+let tipTimer;
+function showTip(el,autoHideMs){
+  tipEl.textContent=el.dataset.tip;
+  tipEl.classList.add("show");
+  const r=el.getBoundingClientRect();
+  const w=tipEl.offsetWidth;
+  const x=Math.min(Math.max(r.left+r.width/2,w/2+8),window.innerWidth-w/2-8);
+  tipEl.style.left=x+"px";
+  tipEl.style.top=(r.bottom+8)+"px";
+  clearTimeout(tipTimer);
+  if(autoHideMs)tipTimer=setTimeout(hideTip,autoHideMs);
+}
+function hideTip(){clearTimeout(tipTimer);tipEl.classList.remove("show")}
+
+document.querySelectorAll("[data-tip]").forEach(el=>{
+  let pressTimer=null,longPressed=false;
+  // Mouse: show on hover, hide on leave/click
+  el.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse")showTip(el)});
+  el.addEventListener("pointerleave",()=>{clearTimeout(pressTimer);hideTip()});
+  // Touch: press and hold ~0.45s to show the label; a normal tap works as usual
+  el.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse")return;
+    longPressed=false;
+    clearTimeout(pressTimer);
+    pressTimer=setTimeout(()=>{longPressed=true;showTip(el,1800);if(navigator.vibrate)navigator.vibrate(15)},450);
+  });
+  ["pointerup","pointercancel"].forEach(t=>el.addEventListener(t,()=>clearTimeout(pressTimer)));
+  el.addEventListener("contextmenu",e=>e.preventDefault());
+  // If the label was shown by long-press, don't also trigger the button's action
+  el.addEventListener("click",e=>{
+    if(longPressed){e.preventDefault();e.stopImmediatePropagation();longPressed=false;return}
+    hideTip();
+  },true);
+});
+
+/* ===== SYNTAX HIGHLIGHT PATCH =====
+   Paste this whole block in your <script>, right BEFORE the last line:
+   renderTabs();renderMenu();loadEditor();
+================================== */
+(function(){
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const sp=(c,t)=>'<span class="h-'+c+'">'+esc(t)+'</span>';
+const S=s=>new Set((s||"").split(" "));
+const END="(?![\\s\\S])";
+const L={},cache={};
+const def=(id,o)=>{["kw","ct","ty","fn"].forEach(k=>o[k]=S(o[k]));L[id]=o};
+const C={lc:"//",blk:1};
+const CTY="int long short char float double void unsigned signed size_t bool";
+
+def("python",{lc:"#",tq:1,tq2:1,x:[["fn",/@[\w.]+/.source]],
+ kw:"and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case",
+ ct:"True False None self cls",ty:"int str float bool list dict set tuple object bytes"});
+def("javascript",{...C,dollar:1,bt:1,
+ kw:"var let const function return if else for while do switch case break continue new delete typeof instanceof in of class extends super import export from default async await yield try catch finally throw static get set void with debugger",
+ ct:"true false null undefined NaN Infinity this",ty:"console Math JSON Object Array String Number Boolean Promise Map Set Date RegExp Error window document Symbol"});
+def("typescript",{...C,dollar:1,bt:1,
+ kw:"var let const function return if else for while do switch case break continue new delete typeof instanceof in of class extends super import export from default async await yield try catch finally throw static get set void interface type enum implements namespace declare abstract readonly private public protected as is keyof infer satisfies",
+ ct:"true false null undefined NaN Infinity this",ty:"console Math JSON Object Array String Number Boolean Promise Map Set Date Error string number boolean any never unknown object"});
+def("sql",{ci:1,lc:"--",blk:1,
+ kw:"select from where insert into values update set delete create table drop alter add join inner left right outer full cross on group by order having limit offset as and or not is in like between distinct union all exists case when then else end primary key foreign references default unique index view database if begin commit rollback with asc desc",
+ ct:"true false null",ty:"integer int text real blob varchar char boolean date datetime float numeric decimal"});
+def("lua",{lc:"--",lua:1,
+ kw:"and break do else elseif end for function goto if in local not or repeat return then until while",
+ ct:"true false nil self",ty:"string table math os io"});
+def("java",{...C,tq:1,x:[["fn",/@\w+/.source]],
+ kw:"abstract assert break case catch class const continue default do else enum extends final finally for goto if implements import instanceof interface native new package private protected public return static strictfp super switch synchronized throw throws transient try volatile while var record sealed permits yield",
+ ct:"true false null this",ty:"int long short byte float double boolean char void String System Object Integer List Map"});
+def("c",{...C,inc:1,pp:1,
+ kw:"auto break case const continue default do else enum extern for goto if inline register restrict return sizeof static struct switch typedef union volatile while",
+ ct:"NULL true false",ty:CTY+" FILE"});
+def("cpp",{...C,inc:1,pp:1,
+ kw:"auto break case const continue default do else enum extern for goto if inline return sizeof static struct switch typedef union volatile while class namespace using template typename public private protected virtual override final new delete try catch throw constexpr noexcept operator explicit friend mutable static_cast dynamic_cast reinterpret_cast const_cast decltype",
+ ct:"NULL true false nullptr this",ty:CTY+" string vector map set cout cin cerr endl std unique_ptr shared_ptr"});
+def("csharp",{...C,tq:1,
+ kw:"abstract as base break case catch checked class const continue default delegate do else enum event explicit extern finally fixed for foreach goto if implicit in interface internal is lock namespace new operator out override params private protected public readonly ref return sealed sizeof stackalloc static struct switch throw try typeof unchecked unsafe using virtual volatile while var async await get set record init yield",
+ ct:"true false null this",ty:"int long short byte sbyte uint ulong ushort float double decimal bool char string object void Console String List Dictionary"});
+def("php",{lc:"//|#",blk:1,dollar:0,x:[["kw",/<\?php|\?>/.source],["var",/\$\w+/.source]],
+ kw:"abstract and array as break callable case catch class clone const continue declare default do echo else elseif empty extends final finally fn for foreach function global goto if implements include include_once instanceof interface isset list match namespace new or print private protected public readonly require require_once return static switch throw trait try unset use var while xor yield",
+ ct:"true false null TRUE FALSE NULL",ty:"int float string bool array object void mixed self parent"});
+def("go",{...C,bt:1,
+ kw:"break case chan const continue default defer else fallthrough for func go goto if import interface map package range return select struct switch type var",
+ ct:"true false nil iota",ty:"int int8 int16 int32 int64 uint uint8 uint16 uint32 uint64 float32 float64 string bool byte rune error any fmt"});
+def("rust",{...C,rust:1,x:[["fn",/#!?\[[^\]\n]*\]/.source]],
+ kw:"as async await break const continue crate dyn else enum extern fn for if impl in let loop match mod move mut pub ref return static struct super trait type unsafe use where while",
+ ct:"true false None Some Ok Err self Self",ty:"i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize f32 f64 bool char str String Vec Option Result Box"});
+def("kotlin",{...C,tq:1,x:[["fn",/@\w+/.source]],
+ kw:"as break class continue do else for fun if in interface is object package return super throw try typealias val var when while by catch constructor finally get import init set where abstract annotation companion const data enum final inline inner internal lateinit open operator out override private protected public sealed suspend vararg",
+ ct:"true false null this",ty:"Int Long Short Byte Float Double Boolean Char String Unit Any Nothing List Map Set Array"});
+def("swift",{...C,tq:1,x:[["fn",/@\w+/.source]],
+ kw:"associatedtype class deinit enum extension fileprivate func import init inout internal let open operator private protocol public rethrows static struct subscript typealias var break case continue default defer do else fallthrough for guard if in repeat return switch where while as catch throw throws try async await some any actor override final lazy weak mutating",
+ ct:"true false nil self Self super",ty:"Int Double Float Bool String Character Array Dictionary Set Optional Void Any"});
+def("ruby",{lc:"#",x:[["var",/@@?\w+/.source],["ct",/(?<![:\w]):[A-Za-z_]\w*/.source]],
+ kw:"alias and begin break case class def do else elsif end ensure for if in module next not or redo rescue retry return then undef unless until when while yield require require_relative attr_accessor attr_reader attr_writer",
+ ct:"true false nil self",ty:"",fn:"puts print p gets raise"});
+def("dart",{...C,tq:1,x:[["fn",/@\w+/.source]],
+ kw:"abstract as assert async await break case catch class const continue covariant default deferred do dynamic else enum export extends extension external factory final finally for get hide if implements import in interface is late library mixin new on operator part required rethrow return set show static super switch sync throw try typedef var while with yield",
+ ct:"true false null this",ty:"int double num bool String List Map Set void Object Future Stream"});
+def("r",{lc:"#",
+ kw:"if else repeat while function for next break in library require return",
+ ct:"TRUE FALSE NULL NA NA_integer_ NA_real_ NA_character_ Inf NaN",ty:"",fn:"print cat paste"});
+def("scala",{...C,tq:1,
+ kw:"abstract case catch class def do else extends final finally for forSome if implicit import lazy match new object override package private protected return sealed super throw trait try type val var while with yield given using enum then extension",
+ ct:"true false null this",ty:"Int Long Short Byte Float Double Boolean Char String Unit Any Nothing List Map Set Array Option Some None Seq Vector"});
+
+function build(id){
+ const o=L[id],P=[],add=(c,s)=>P.push([c,s]);
+ if(o.lua){add("com","--\\[\\[[\\s\\S]*?(?:\\]\\]|"+END+")");add("str","\\[\\[[\\s\\S]*?(?:\\]\\]|"+END+")")}
+ if(o.blk)add("com","/\\*[\\s\\S]*?(?:\\*/|"+END+")");
+ if(o.lc)add("com","(?:"+o.lc+").*");
+ if(o.inc)add("inc","^[ \\t]*#[ \\t]*include[ \\t]*<[^>\\n]*>");
+ if(o.pp)add("kw","^[ \\t]*#[ \\t]*\\w+");
+ (o.x||[]).forEach(p=>add(p[0],p[1]));
+ if(o.tq)add("str",'"""[\\s\\S]*?(?:"""|'+END+")");
+ if(o.tq2)add("str","'''[\\s\\S]*?(?:'''|"+END+")");
+ add("str",/"(?:[^"\\\n]|\\.)*"?/.source);
+ if(o.rust){add("ty",/'[A-Za-z_]\w*(?!')/.source);add("str",/'(?:\\.[^'\n]*|[^\\'\n])'/.source)}
+ else add("str",/'(?:[^'\\\n]|\\.)*'?/.source);
+ if(o.bt)add("str",/`(?:[^`\\]|\\[\s\S])*`?/.source);
+ add("num",/\b(?:0[xX][\da-fA-F_]+|0[bB][01_]+|\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?)[a-zA-Z]{0,3}\b/.source);
+ add("w",o.dollar?/[A-Za-z_$][\w$]*/.source:/[A-Za-z_]\w*/.source);
+ add("op",/[+\-*/%=<>!&|^~?:]+/.source);
+ return {re:new RegExp(P.map(p=>"("+p[1]+")").join("|"),"gm"),cls:P.map(p=>p[0])};
+}
+function word(o,t,nx){
+ const w=o.ci?t.toLowerCase():t;
+ if(o.ct.has(w))return"ct";if(o.kw.has(w))return"kw";if(o.ty.has(w))return"ty";if(o.fn.has(w))return"fn";
+ if(/^!?\(/.test(nx))return"fn";
+ if(/^[A-Z]/.test(t))return"ty";
+ return"";
+}
+function hlGeneric(code,id){
+ const o=L[id],b=cache[id]||(cache[id]=build(id)),re=b.re;
+ re.lastIndex=0;let out="",last=0,m;
+ while((m=re.exec(code))){
+  if(!m[0]){re.lastIndex++;continue}
+  out+=esc(code.slice(last,m.index));
+  let k=1;while(m[k]===undefined)k++;
+  let c=b.cls[k-1];const t=m[0];
+  if(c==="w")c=word(o,t,code.slice(re.lastIndex,re.lastIndex+2));
+  if(c==="inc"){const i=t.indexOf("<");out+=sp("kw",t.slice(0,i))+sp("str",t.slice(i))}
+  else out+=c?sp(c,t):esc(t);
+  last=re.lastIndex;
+ }
+ return out+esc(code.slice(last));
+}
+function tagStr(s){
+ const name=s.match(/^<\/?[\w:-]+/)[0];
+ let rest=s.slice(name.length),end="";
+ const e=rest.match(/\/?>$/);
+ if(e){end=e[0];rest=rest.slice(0,rest.length-end.length)}
+ const attrs=rest.replace(/("[^"]*"?|'[^']*'?)|([^\s=<>"'\/]+)(?=\s*=)|([^\s=<>"'\/]+)|(=)|[\s\S]/g,
+  (x,s1,a1,a2,eq)=>s1?sp("str",s1):(a1||a2)?sp("attr",x):eq?sp("op",x):esc(x));
+ return sp("tag",name)+attrs+(end?sp("tag",end):"");
+}
+function hlHtml(code){
+ const re=/(<!--[\s\S]*?(?:-->|(?![\s\S])))|(<![A-Za-z][^>]*>?)|(<(script|style)\b(?:"[^"]*"|'[^']*'|[^>])*>)([\s\S]*?)(<\/\4\s*>|(?![\s\S]))|(<\/?[A-Za-z][\w:-]*(?:"[^"]*"|'[^']*'|[^>])*>?)|(&#?\w+;)/gi;
+ let out="",last=0,m;
+ while((m=re.exec(code))){
+  out+=esc(code.slice(last,m.index));
+  if(m[1])out+=sp("com",m[0]);
+  else if(m[2])out+=sp("kw",m[0]);
+  else if(m[3]){
+   out+=tagStr(m[3]);
+   out+=m[4].toLowerCase()==="script"?hlGeneric(m[5],"javascript"):hlCss(m[5]);
+   if(m[6])out+=tagStr(m[6]);
+  }
+  else if(m[7])out+=tagStr(m[7]);
+  else out+=sp("ct",m[0]);
+  last=re.lastIndex;
+ }
+ return out+esc(code.slice(last));
+}
+function hlCss(code){
+ const re=/(\/\*[\s\S]*?(?:\*\/|(?![\s\S])))|("(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?)|(@[\w-]+)|(#[\w-]+)|(\.[A-Za-z_-][\w-]*)|(-?\d*\.?\d+(?:px|em|rem|vh|vw|vmin|vmax|ms|s|deg|fr|ch|pt|cm|mm|in|%)?)|(--[\w-]+|-?[A-Za-z_][\w-]*)|([{}();:,])|([>+~*])/g;
+ let out="",last=0,m,d=0,p=0,prev="";
+ while((m=re.exec(code))){
+  out+=esc(code.slice(last,m.index));
+  const t=m[0];let c="";
+  if(m[1])c="com";
+  else if(m[2])c="str";
+  else if(m[3])c="kw";
+  else if(m[4])c=(d>0&&/^#[\da-fA-F]{3,8}$/.test(t))?"num":"ty";
+  else if(m[5])c="ty";
+  else if(m[6])c="num";
+  else if(m[7]){
+   const n=(code.slice(re.lastIndex).match(/^\s*(.)/)||[])[1]||"";
+   if(d>0||p>0)c=n===":"?"prop":n==="("?"fn":"ct";
+   else c=prev===":"?"kw":"tag";
+  }
+  else if(m[8]){
+   if(t==="{")d++;else if(t==="}")d=Math.max(0,d-1);
+   else if(t==="(")p++;else if(t===")")p=Math.max(0,p-1);
+  }
+  else c="op";
+  if(m[8])prev=t;else if(!m[1])prev="";
+  out+=c?sp(c,t):esc(t);
+  last=re.lastIndex;
+ }
+ return out+esc(code.slice(last));
+}
+function highlight(code,id){
+ try{
+  if(id==="html")return hlHtml(code);
+  if(id==="css")return hlCss(code);
+  return L[id]?hlGeneric(code,id):esc(code);
+ }catch(e){return esc(code)}
+}
+window.highlightCode=highlight;
+window.langWords=id=>{const o=L[id];const a=s=>o?[...s].filter(Boolean):[];return {kw:a(o&&o.kw),ct:a(o&&o.ct),ty:a(o&&o.ty),fn:a(o&&o.fn)}};
+
+// ---------- Styles (dark + light theme) ----------
+const st=document.createElement("style");
+st.textContent=`
+:root{--h-plain:#d7dae7;--h-kw:#c792ea;--h-str:#c3e88d;--h-num:#f78c6c;--h-com:#676e95;--h-fn:#82aaff;--h-ty:#ffcb6b;--h-ct:#ff5370;--h-op:#89ddff;--h-tag:#f07178;--h-attr:#ffcb6b;--h-prop:#80cbc4;--h-var:#f07178}
+:root[data-theme="light"]{--h-plain:#1f2a44;--h-kw:#7c3aed;--h-str:#2b7a35;--h-num:#c2410c;--h-com:#8a90a8;--h-fn:#2d5bd1;--h-ty:#a16207;--h-ct:#d6304d;--h-op:#0e7490;--h-tag:#c2255c;--h-attr:#a16207;--h-prop:#0f766e;--h-var:#c2255c}
+.code-wrap{position:relative;flex:1;min-width:0;height:100%}
+.code-wrap textarea{position:absolute;inset:0;width:100%;height:100%;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--text-strong);z-index:1}
+.code-wrap textarea::selection{background:rgba(var(--accent-rgb),.35)}
+.hl{position:absolute;inset:0;margin:0;padding:15px;overflow:hidden;pointer-events:none;font-family:'Fira Code',monospace;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;color:var(--h-plain);background:var(--bg-panel)}
+.hl code{font:inherit;white-space:inherit}
+.h-kw{color:var(--h-kw)}.h-str{color:var(--h-str)}.h-num{color:var(--h-num)}.h-fn{color:var(--h-fn)}
+.h-ty{color:var(--h-ty)}.h-ct{color:var(--h-ct)}.h-op{color:var(--h-op)}.h-tag{color:var(--h-tag)}
+.h-attr{color:var(--h-attr)}.h-prop{color:var(--h-prop)}.h-var{color:var(--h-var)}.h-com{color:var(--h-com);font-style:italic}`;
+document.head.appendChild(st);
+
+// ---------- Layer the colored <pre> behind the textarea ----------
+const wrap=document.createElement("div");wrap.className="code-wrap";
+const pre=document.createElement("pre");pre.className="hl";pre.setAttribute("aria-hidden","true");
+const hc=document.createElement("code");pre.appendChild(hc);
+codeArea.parentNode.insertBefore(wrap,codeArea);
+wrap.appendChild(pre);wrap.appendChild(codeArea);
+
+function render(){
+ hc.innerHTML=activeLang?highlight(codeArea.value,activeLang)+"\n ":"";
+ pre.style.paddingRight=(15+Math.max(0,codeArea.offsetWidth-codeArea.clientWidth))+"px";
+ pre.scrollTop=codeArea.scrollTop;
+}
+const _u=updateLineNumbers;
+updateLineNumbers=function(){_u();render()};
+codeArea.addEventListener("scroll",()=>{pre.scrollTop=codeArea.scrollTop});
+})();
+
+// ================== Auto-suggest popup (shows matching words while you type) ==================
+(function(){
+const ta=codeArea,host=ta.closest(".editor-wrapper"),wrap=ta.parentNode;
+const AC={};
+// ---- JavaScript / TypeScript ----
+const JS_FN="console.log console.error console.warn console.info console.table console.clear console.dir console.time console.timeEnd console.assert console.group console.groupEnd alert prompt confirm setTimeout setInterval clearTimeout clearInterval requestAnimationFrame cancelAnimationFrame parseInt parseFloat isNaN isFinite fetch structuredClone queueMicrotask atob btoa encodeURIComponent decodeURIComponent encodeURI decodeURI document.getElementById document.getElementsByClassName document.getElementsByTagName document.querySelector document.querySelectorAll document.createElement document.createTextNode document.createDocumentFragment document.addEventListener document.removeEventListener window.addEventListener window.removeEventListener window.open window.close window.scrollTo window.print location.reload location.assign location.replace localStorage.getItem localStorage.setItem localStorage.removeItem localStorage.clear sessionStorage.getItem sessionStorage.setItem sessionStorage.removeItem sessionStorage.clear JSON.stringify JSON.parse Math.random Math.floor Math.ceil Math.round Math.abs Math.max Math.min Math.pow Math.sqrt Math.cbrt Math.sin Math.cos Math.tan Math.atan Math.atan2 Math.log Math.log2 Math.log10 Math.exp Math.sign Math.trunc Math.hypot Object.keys Object.values Object.entries Object.assign Object.freeze Object.create Object.defineProperty Object.fromEntries Object.getPrototypeOf Array.isArray Array.from Array.of Number.isInteger Number.isNaN Number.isFinite Number.parseFloat Number.parseInt String.fromCharCode Promise.all Promise.race Promise.resolve Promise.reject Promise.allSettled Promise.any Date.now Date.parse";
+const JS_CT="Math.PI Math.E Math.SQRT2 Math.LN2 Math.LN10 Number.MAX_VALUE Number.MIN_VALUE Number.MAX_SAFE_INTEGER Number.MIN_SAFE_INTEGER Number.EPSILON Number.POSITIVE_INFINITY Number.NEGATIVE_INFINITY window.innerWidth window.innerHeight document.body document.title document.documentElement location.href location.pathname location.search location.hash navigator.userAgent navigator.language";
+const JS_MEM="push pop shift unshift slice splice concat join reverse sort map filter reduce reduceRight forEach find findIndex findLast findLastIndex some every includes indexOf lastIndexOf flat flatMap fill at keys values entries charAt charCodeAt codePointAt split trim trimStart trimEnd toUpperCase toLowerCase replace replaceAll substring substr startsWith endsWith padStart padEnd repeat match matchAll search localeCompare normalize toFixed toString toPrecision toLocaleString appendChild removeChild append prepend remove setAttribute getAttribute removeAttribute hasAttribute toggleAttribute addEventListener removeEventListener querySelector querySelectorAll closest insertBefore insertAdjacentHTML cloneNode replaceWith contains add toggle replace focus blur click submit reset select scrollIntoView preventDefault stopPropagation stopImmediatePropagation getBoundingClientRect then catch finally get set has delete clear getFullYear getMonth getDate getDay getHours getMinutes getSeconds getMilliseconds getTime toISOString toDateString toLocaleDateString toLocaleTimeString setFullYear setMonth setDate setHours setMinutes setSeconds hasOwnProperty toJSON test exec call apply bind next";
+const JS_FIELD="length innerHTML outerHTML textContent innerText value style className id classList children childNodes parentElement parentNode firstChild lastChild firstElementChild lastElementChild nextElementSibling previousElementSibling dataset checked disabled src href type name placeholder selectedIndex target key code clientX clientY offsetWidth offsetHeight scrollTop scrollHeight files size";
+const JS_TY="Intl URL URLSearchParams FormData Blob File FileReader WebSocket XMLHttpRequest WeakMap WeakSet Proxy Reflect BigInt Uint8Array Float32Array Int32Array ArrayBuffer localStorage sessionStorage navigator location history screen performance crypto HTMLElement Event CustomEvent MutationObserver IntersectionObserver ResizeObserver AbortController TextEncoder TextDecoder Audio Image Worker Notification";
+AC.javascript={fn:JS_FN,ct:JS_CT,mem:JS_MEM,field:JS_FIELD,ty:JS_TY};
+AC.typescript={fn:JS_FN,ct:JS_CT,mem:JS_MEM,field:JS_FIELD,ty:JS_TY+" Partial Required Readonly Record Pick Omit Exclude Extract NonNullable ReturnType Parameters InstanceType Awaited Uppercase Lowercase Capitalize"};
+
+// ---- Python ----
+AC.python={
+ fn:"print input len range int str float bool list dict set tuple frozenset sorted enumerate zip map filter sum min max abs open type isinstance issubclass round reversed any all chr ord hex oct bin pow divmod id hash iter next callable dir vars globals locals getattr setattr hasattr delattr eval exec compile format repr ascii bytes bytearray memoryview slice super property staticmethod classmethod object complex help exit quit math.sqrt math.pow math.floor math.ceil math.fabs math.factorial math.gcd math.lcm math.log math.log10 math.log2 math.sin math.cos math.tan math.asin math.acos math.atan math.exp math.isqrt math.degrees math.radians math.hypot math.comb math.perm random.random random.randint random.choice random.choices random.shuffle random.sample random.uniform random.seed random.randrange time.time time.sleep time.perf_counter datetime.datetime.now datetime.date.today os.getcwd os.listdir os.path.join os.path.exists os.remove os.mkdir os.makedirs os.rename sys.exit json.dumps json.loads json.dump json.load re.match re.search re.findall re.sub re.split re.compile re.fullmatch re.finditer collections.Counter collections.defaultdict collections.deque collections.OrderedDict collections.namedtuple itertools.permutations itertools.combinations itertools.product itertools.accumulate itertools.chain itertools.count itertools.cycle itertools.groupby functools.reduce functools.lru_cache functools.partial statistics.mean statistics.median statistics.mode statistics.stdev string.capwords copy.copy copy.deepcopy heapq.heappush heapq.heappop heapq.heapify heapq.nlargest heapq.nsmallest bisect.bisect_left bisect.bisect_right bisect.insort",
+ ct:"math.pi math.e math.inf math.tau math.nan string.ascii_letters string.ascii_lowercase string.ascii_uppercase string.digits string.punctuation sys.argv sys.maxsize sys.stdin sys.stdout __name__ __main__ __file__ __doc__ NotImplemented Ellipsis",
+ kw:"__init__ __str__ __repr__ __len__ __eq__ __lt__ __iter__ __next__ __getitem__ __setitem__ __enter__ __exit__ __call__ __add__ __sub__ __mul__ __contains__ __hash__",
+ ty:"Exception ValueError TypeError KeyError IndexError NameError ZeroDivisionError AttributeError RuntimeError StopIteration OSError FileNotFoundError ImportError KeyboardInterrupt AssertionError NotImplementedError Counter defaultdict deque OrderedDict namedtuple dataclass Enum ABC datetime timedelta Fraction Decimal Path math random os sys time json re collections itertools functools statistics string copy heapq bisect typing dataclasses enum abc pathlib decimal fractions operator textwrap csv",
+ mem:"upper lower strip lstrip rstrip split rsplit join replace find rfind index rindex count startswith endswith isdigit isalpha isalnum isupper islower isspace isnumeric isdecimal title capitalize swapcase center ljust rjust zfill format encode decode splitlines partition rpartition casefold expandtabs translate append extend insert remove pop clear sort reverse copy keys values items get update popitem setdefault fromkeys add discard union intersection difference symmetric_difference issubset issuperset isdisjoint read readline readlines write writelines close seek tell flush most_common appendleft popleft total_seconds strftime strptime isoformat group groups groupdict span start end"
+};
+
+// ---- SQL ----
+AC.sql={
+ fn:"COUNT SUM AVG MIN MAX ROUND ABS CEIL FLOOR UPPER LOWER LENGTH SUBSTR SUBSTRING TRIM LTRIM RTRIM REPLACE INSTR CONCAT COALESCE IFNULL NULLIF CAST DATE TIME DATETIME STRFTIME JULIANDAY RANDOM TYPEOF GROUP_CONCAT TOTAL ROW_NUMBER RANK DENSE_RANK NTILE LAG LEAD FIRST_VALUE LAST_VALUE NOW CURRENT_DATE CURRENT_TIME CURRENT_TIMESTAMP LIKE GLOB QUOTE HEX ZEROBLOB PRINTF IIF CHANGES LAST_INSERT_ROWID",
+ kw:"AUTOINCREMENT PRAGMA TRIGGER CONSTRAINT CHECK EXCEPT INTERSECT REPLACE VACUUM ANALYZE SAVEPOINT TRANSACTION CASCADE RESTRICT COLLATE NATURAL USING RETURNING TEMP TEMPORARY VIRTUAL RECURSIVE WINDOW OVER PARTITION ROWS RANGE UNBOUNDED PRECEDING FOLLOWING CURRENT NULLS FIRST LAST FILTER EXPLAIN ROLLBACK TO RENAME COLUMN TRUNCATE GRANT REVOKE DECLARE EXEC PROCEDURE FUNCTION CONFLICT IGNORE ABORT FAIL GLOBAL NOTNULL ISNULL",
+ ty:"TEXT INTEGER REAL BLOB NUMERIC VARCHAR CHAR BOOLEAN DATE DATETIME TIMESTAMP FLOAT DOUBLE DECIMAL BIGINT SMALLINT TINYINT"
+};
+
+// ---- Lua ----
+AC.lua={
+ fn:"print tostring tonumber type pairs ipairs next select assert error pcall xpcall require load dofile setmetatable getmetatable rawget rawset rawequal rawlen unpack table.insert table.remove table.concat table.sort table.unpack table.pack table.move string.format string.len string.sub string.upper string.lower string.rep string.reverse string.find string.match string.gmatch string.gsub string.byte string.char math.floor math.ceil math.abs math.sqrt math.max math.min math.random math.randomseed math.sin math.cos math.tan math.log math.exp math.fmod math.tointeger os.time os.date os.clock os.getenv os.exit io.write io.read io.open io.lines coroutine.create coroutine.resume coroutine.yield coroutine.wrap coroutine.status",
+ ct:"math.pi math.huge math.maxinteger math.mininteger _G _VERSION",
+ mem:"upper lower sub len rep reverse find match gmatch gsub format byte insert remove concat sort unpack close read write lines seek"
+};
+
+// ---- Java ----
+AC.java={
+ fn:"System.out.println System.out.print System.out.printf System.err.println System.exit System.currentTimeMillis System.nanoTime System.arraycopy System.getProperty System.lineSeparator Math.abs Math.max Math.min Math.pow Math.sqrt Math.cbrt Math.floor Math.ceil Math.round Math.random Math.sin Math.cos Math.tan Math.log Math.log10 Math.exp Math.hypot Math.floorMod Math.signum Integer.parseInt Integer.valueOf Integer.toString Integer.toBinaryString Integer.toHexString Integer.compare Integer.sum Integer.max Integer.min Double.parseDouble Double.valueOf Double.compare Double.toString Long.parseLong Long.valueOf Boolean.parseBoolean Character.isDigit Character.isLetter Character.isLetterOrDigit Character.isUpperCase Character.isLowerCase Character.isWhitespace Character.toUpperCase Character.toLowerCase Character.getNumericValue String.valueOf String.format String.join Arrays.sort Arrays.toString Arrays.fill Arrays.asList Arrays.copyOf Arrays.copyOfRange Arrays.equals Arrays.stream Arrays.deepToString Arrays.binarySearch Collections.sort Collections.reverse Collections.max Collections.min Collections.shuffle Collections.swap Collections.unmodifiableList Collections.emptyList List.of Map.of Set.of Objects.equals Objects.hash Objects.requireNonNull Optional.of Optional.empty Optional.ofNullable Thread.sleep LocalDate.now LocalDateTime.now",
+ ct:"Integer.MAX_VALUE Integer.MIN_VALUE Long.MAX_VALUE Long.MIN_VALUE Double.MAX_VALUE Double.MIN_VALUE Math.PI Math.E System.in System.out System.err java.util.Scanner java.util.ArrayList java.util.List java.util.Map java.util.HashMap java.util.HashSet java.util.Arrays java.util.Collections java.util.Random java.io.BufferedReader java.io.InputStreamReader java.io.IOException",
+ ty:"Scanner ArrayList HashMap HashSet LinkedList TreeMap TreeSet LinkedHashMap LinkedHashSet ArrayDeque PriorityQueue Stack Queue Deque Iterator Random StringBuilder StringBuffer BufferedReader InputStreamReader Thread Runnable Exception RuntimeException IllegalArgumentException IllegalStateException NullPointerException ArrayIndexOutOfBoundsException NumberFormatException ArithmeticException IOException Optional Arrays Collections Objects Character Integer Double Long Boolean Comparator Comparable Iterable Collection Function Consumer Supplier Predicate BiFunction LocalDate LocalDateTime File FileReader FileWriter Stream Collectors",
+ mem:"length charAt substring indexOf lastIndexOf equals equalsIgnoreCase compareTo contains startsWith endsWith isEmpty isBlank toUpperCase toLowerCase trim strip split replace replaceAll toCharArray concat matches repeat chars get set put remove size clear containsKey containsValue keySet values entrySet getOrDefault putIfAbsent add addAll removeIf forEach stream sort iterator hasNext next nextInt nextLine nextDouble nextLong hasNextInt append insert reverse toString deleteCharAt setLength filter map collect reduce mapToInt sum average count sorted limit skip distinct anyMatch allMatch findFirst peek poll offer push pop getKey getValue printStackTrace getMessage hashCode getClass intValue doubleValue"
+};
+
+// ---- C ----
+AC.c={
+ fn:"printf scanf sprintf snprintf fprintf sscanf fscanf fgets fputs puts putchar getchar gets fopen fclose fread fwrite fseek ftell rewind feof fflush remove rename malloc calloc realloc free exit abort atoi atof atol strtol strtod rand srand qsort bsearch abs labs system getenv strlen strcpy strncpy strcat strncat strcmp strncmp strchr strrchr strstr strtok memcpy memmove memset memcmp isalpha isdigit isalnum isspace isupper islower ispunct toupper tolower sqrt pow sin cos tan asin acos atan atan2 exp log log10 ceil floor fabs fmod round trunc time clock difftime assert perror",
+ kw:"include define undef ifdef ifndef endif pragma main",
+ ty:"FILE size_t ptrdiff_t uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t intptr_t",
+ ct:"NULL EOF EXIT_SUCCESS EXIT_FAILURE INT_MAX INT_MIN UINT_MAX LONG_MAX LONG_MIN CHAR_BIT RAND_MAX BUFSIZ stdin stdout stderr M_PI DBL_MAX FLT_MAX SEEK_SET SEEK_END stdio.h stdlib.h string.h math.h ctype.h time.h stdbool.h stdint.h limits.h float.h assert.h errno.h signal.h stdarg.h stddef.h"
+};
+
+// ---- C++ ----
+AC.cpp={
+ fn:"printf scanf sprintf snprintf fgets puts putchar getchar malloc calloc realloc free exit atoi atof strlen strcpy strcmp strcat memcpy memset toupper tolower isalpha isdigit isalnum isspace sqrt pow sin cos tan exp log log10 ceil floor fabs fmod round abs rand srand time sort reverse max min swap to_string stoi stol stod stoll getline find accumulate unique lower_bound upper_bound binary_search count max_element min_element iota fill make_pair make_unique make_shared next_permutation prev_permutation gcd lcm std::sort std::reverse std::max std::min std::swap std::abs std::to_string std::stoi std::stod std::getline std::find std::accumulate std::unique std::lower_bound std::upper_bound std::binary_search std::count std::max_element std::min_element std::iota std::fill std::make_pair std::make_unique std::make_shared std::sqrt std::pow std::move std::next_permutation std::gcd std::lcm",
+ kw:"include define using namespace std main",
+ ty:"std::cout std::cin std::cerr std::endl std::vector std::string std::map std::set std::unordered_map std::unordered_set std::pair std::array std::queue std::stack std::deque std::list std::priority_queue std::unique_ptr std::shared_ptr std::ifstream std::ofstream std::stringstream std::bitset std::function cout cin cerr endl vector string map set unordered_map unordered_set pair array queue stack deque list priority_queue unique_ptr shared_ptr ifstream ofstream stringstream bitset function size_t uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t",
+ ct:"NULL nullptr INT_MAX INT_MIN LONG_MAX LLONG_MAX M_PI EOF iostream vector string map set algorithm cmath cstdio cstdlib cstring queue stack deque unordered_map unordered_set numeric iomanip fstream sstream bitset functional memory utility climits cctype ctime cassert array list",
+ mem:"push_back pop_back push_front pop_front size empty clear begin end rbegin rend front back insert erase find count at emplace emplace_back resize reserve capacity substr length c_str append push pop top swap assign data sort lower_bound upper_bound fill",
+ field:"first second"
+};
+
+// ---- C# ----
+AC.csharp={
+ fn:"Console.WriteLine Console.Write Console.ReadLine Console.ReadKey Console.Clear Console.Read Math.Abs Math.Max Math.Min Math.Pow Math.Sqrt Math.Floor Math.Ceiling Math.Round Math.Sin Math.Cos Math.Tan Math.Log Math.Log10 Math.Exp Math.Sign Math.Truncate Convert.ToInt32 Convert.ToInt64 Convert.ToDouble Convert.ToString Convert.ToBoolean int.Parse int.TryParse double.Parse double.TryParse long.Parse bool.Parse string.Join string.Format string.IsNullOrEmpty string.IsNullOrWhiteSpace string.Concat char.IsDigit char.IsLetter char.IsLetterOrDigit char.IsUpper char.IsLower char.IsWhiteSpace char.ToUpper char.ToLower Environment.Exit DateTime.Now DateTime.Today Guid.NewGuid Thread.Sleep Task.Run Task.Delay File.ReadAllText File.WriteAllText File.ReadAllLines File.WriteAllLines File.Exists File.Delete Path.Combine Directory.Exists Array.Sort Array.Reverse Array.IndexOf Array.Copy Array.Fill Array.Resize Enumerable.Range Enumerable.Repeat Enumerable.Empty",
+ ct:"Math.PI Math.E int.MaxValue int.MinValue long.MaxValue double.MaxValue double.MinValue double.NaN string.Empty Environment.NewLine System System.Collections.Generic System.Linq System.Text System.IO System.Threading.Tasks",
+ ty:"List Dictionary HashSet Queue Stack SortedDictionary SortedSet LinkedList StringBuilder Console Math Convert DateTime TimeSpan Random Exception ArgumentException InvalidOperationException NullReferenceException FormatException IndexOutOfRangeException Task Action Func Predicate IEnumerable IList ICollection IDictionary Tuple Nullable Array File Path Directory Thread Guid",
+ mem:"Add AddRange Remove RemoveAt RemoveAll Count Contains Clear Sort Reverse Insert IndexOf ToArray ToList ToString ToUpper ToLower Trim TrimStart TrimEnd Split Substring Replace StartsWith EndsWith PadLeft PadRight Equals CompareTo Select Where OrderBy OrderByDescending ThenBy GroupBy First FirstOrDefault Last LastOrDefault Single Any All Sum Average Min Max Take Skip Distinct ToDictionary Aggregate Zip Concat ContainsKey TryGetValue Append AppendLine AppendFormat Push Pop Peek Enqueue Dequeue GetType GetHashCode ForEach",
+ field:"Length Count Keys Values Key Value Now Year Month Day Hour Minute Second"
+};
+
+// ---- PHP ----
+AC.php={
+ fn:"echo print_r var_dump var_export strlen strtolower strtoupper ucfirst ucwords lcfirst trim ltrim rtrim str_replace str_contains str_starts_with str_ends_with str_repeat str_pad str_split strpos strrpos substr substr_count strrev strcmp strcasecmp explode implode join sprintf printf number_format nl2br htmlspecialchars addslashes md5 sha1 crc32 password_hash password_verify base64_encode base64_decode json_encode json_decode serialize unserialize count sizeof array_push array_pop array_shift array_unshift array_merge array_slice array_splice array_map array_filter array_reduce array_keys array_values array_key_exists array_search array_unique array_reverse array_sum array_product array_combine array_flip array_fill array_column array_chunk array_diff array_intersect array_rand in_array sort rsort usort uasort uksort ksort krsort asort arsort shuffle range compact extract isset empty unset is_null is_numeric is_int is_string is_array is_bool is_float is_object is_callable intval floatval strval boolval settype gettype abs ceil floor round sqrt pow max min rand mt_rand random_int mt_srand pi fmod intdiv date time strtotime mktime checkdate date_default_timezone_set microtime usleep sleep file_get_contents file_put_contents fopen fclose fgets fwrite fread file_exists unlink mkdir is_dir is_file basename dirname pathinfo define defined function_exists class_exists method_exists property_exists spl_autoload_register session_start session_destroy header setcookie exit die ini_set error_reporting preg_match preg_match_all preg_replace preg_split filter_var mb_strlen mb_substr mb_strtoupper mb_strtolower",
+ ct:"PHP_EOL PHP_INT_MAX PHP_INT_MIN PHP_VERSION M_PI M_E E_ALL $_GET $_POST $_SERVER $_SESSION $_COOKIE $_FILES $_REQUEST $_ENV $GLOBALS $this __DIR__ __FILE__ __LINE__ __CLASS__ __FUNCTION__ __METHOD__",
+ ty:"DateTime DateTimeImmutable Exception InvalidArgumentException RuntimeException PDO ArrayObject ArrayIterator stdClass Closure Throwable Countable Iterator JsonSerializable",
+ kw:"__construct __destruct __get __set __call __toString __invoke"
+};
+
+// ---- Go ----
+AC.go={
+ fn:"fmt.Println fmt.Print fmt.Printf fmt.Sprintf fmt.Sprint fmt.Sprintln fmt.Fprintf fmt.Errorf fmt.Scan fmt.Scanln fmt.Scanf fmt.Sscanf len cap make new append copy delete panic recover close print println strings.Contains strings.Split strings.Join strings.Replace strings.ReplaceAll strings.ToUpper strings.ToLower strings.TrimSpace strings.Trim strings.TrimLeft strings.TrimRight strings.TrimPrefix strings.TrimSuffix strings.HasPrefix strings.HasSuffix strings.Index strings.LastIndex strings.Repeat strings.Fields strings.Count strings.EqualFold strconv.Itoa strconv.Atoi strconv.ParseInt strconv.ParseFloat strconv.ParseBool strconv.FormatInt strconv.FormatFloat strconv.Quote math.Sqrt math.Pow math.Abs math.Floor math.Ceil math.Round math.Max math.Min math.Mod math.Log math.Log2 math.Log10 math.Sin math.Cos math.Tan math.Exp math.Trunc math.Inf sort.Ints sort.Strings sort.Float64s sort.Slice sort.SliceStable sort.Sort sort.Search sort.SearchInts os.Exit os.Getenv os.ReadFile os.WriteFile os.Open os.Create time.Now time.Sleep time.Since time.After time.Tick time.NewTimer errors.New errors.Is errors.As bufio.NewReader bufio.NewScanner bufio.NewWriter rand.Intn rand.Seed rand.Float64 rand.Perm rand.Shuffle unicode.IsDigit unicode.IsLetter unicode.IsUpper unicode.IsLower unicode.ToUpper unicode.ToLower unicode.IsSpace json.Marshal json.Unmarshal context.Background",
+ ct:"math.Pi math.E math.MaxInt64 math.MinInt64 math.MaxInt32 math.MinInt32 math.MaxInt math.MinInt time.Second time.Millisecond time.Minute time.Hour os.Args os.Stdin os.Stdout os.Stderr",
+ ty:"fmt strings strconv math sort os time errors bufio sync rand unicode json context http io ioutil bytes sync.WaitGroup sync.Mutex sync.RWMutex sync.Once strings.Builder time.Duration",
+ kw:"main",
+ mem:"Add Done Wait Lock Unlock RLock RUnlock Scan Text Err Split WriteString String Len Reset ReadString Flush Error Write Read Close Seconds Milliseconds Format Unix Sub"
+};
+
+// ---- Rust ----
+AC.rust={
+ fn:"println! print! eprintln! eprint! format! vec! panic! assert! assert_eq! assert_ne! debug_assert! todo! unimplemented! unreachable! write! writeln! matches! dbg! drop String::new String::from String::with_capacity Vec::new Vec::with_capacity Vec::from HashMap::new HashSet::new BTreeMap::new BTreeSet::new VecDeque::new BinaryHeap::new Box::new Rc::new Arc::new RefCell::new Mutex::new std::io::stdin std::io::stdout std::fs::read_to_string std::fs::write std::env::args std::process::exit std::mem::swap std::mem::replace std::cmp::max std::cmp::min std::thread::spawn std::thread::sleep std::time::Instant::now std::time::Duration::from_secs std::time::Duration::from_millis",
+ ct:"i32::MAX i32::MIN u32::MAX u64::MAX i64::MAX i64::MIN u8::MAX usize::MAX f64::MAX f64::MIN f64::INFINITY f64::NAN std::f64::consts::PI std::f64::consts::E",
+ ty:"std::collections::HashMap std::collections::HashSet std::collections::BTreeMap std::collections::BTreeSet std::collections::VecDeque std::collections::BinaryHeap std::io std::fmt std::rc::Rc std::cell::RefCell std::sync::Arc std::sync::Mutex std::cmp std::env std::fs std::thread std::time std::process HashMap HashSet BTreeMap BTreeSet VecDeque BinaryHeap Rc Arc RefCell Mutex Instant Duration Ordering",
+ mem:"len is_empty push pop insert remove clear iter iter_mut into_iter map filter collect sum product min max count fold enumerate zip rev skip take chain any all find position unwrap expect unwrap_or unwrap_or_else unwrap_or_default is_some is_none is_ok is_err ok_or map_err and_then or_else clone to_string to_owned to_uppercase to_lowercase trim split split_whitespace chars bytes parse contains starts_with ends_with replace push_str as_str as_bytes lines sort sort_by sort_by_key sort_unstable dedup reverse join get get_mut entry or_insert or_insert_with or_default contains_key keys values values_mut borrow borrow_mut lock read_line abs pow sqrt powi powf floor ceil round as_ref as_mut cloned copied last first extend drain retain truncate swap capacity flush"
+};
+
+// ---- Kotlin ----
+AC.kotlin={
+ fn:"println print readLine readln listOf mutableListOf arrayOf intArrayOf doubleArrayOf charArrayOf booleanArrayOf mapOf mutableMapOf setOf mutableSetOf emptyList emptyMap arrayListOf hashMapOf hashSetOf sortedMapOf require check error TODO repeat maxOf minOf lazy run with use sqrt pow abs floor ceil round sin cos tan ln log10 exp",
+ ct:"Int.MAX_VALUE Int.MIN_VALUE Long.MAX_VALUE Long.MIN_VALUE Double.MAX_VALUE Double.MIN_VALUE Double.NaN",
+ ty:"Pair Triple StringBuilder Random Regex IntArray DoubleArray CharArray ArrayList HashMap HashSet LinkedHashMap MutableList MutableMap MutableSet Sequence Comparable Exception Nothing Result Lazy",
+ mem:"size length isEmpty isNotEmpty add addAll remove removeAt contains indexOf first last forEach forEachIndexed map mapIndexed filter filterNot reduce fold sum sumOf average count sorted sortedBy sortedDescending sortedWith sortBy reversed distinct groupBy joinToString take drop zip any all none find firstOrNull lastOrNull toInt toDouble toLong toString toList toMutableList toSet toMap uppercase lowercase trim split replace substring startsWith endsWith toCharArray padStart padEnd repeat get set put containsKey keys values entries getOrDefault getOrPut withIndex coerceAtLeast coerceAtMost coerceIn let also apply takeIf takeUnless map"
+};
+
+// ---- Swift ----
+AC.swift={
+ fn:"print debugPrint readLine dump assert precondition fatalError abs max min zip stride swap sqrt pow floor ceil round sin cos tan log exp atan2 Int.random Double.random arc4random_uniform DispatchQueue.main.async DispatchQueue.global",
+ ct:"Int.max Int.min Double.pi Double.infinity Double.nan Float.pi",
+ ty:"Character Substring Date URL Data UInt Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 CGFloat DispatchQueue Foundation UIKit SwiftUI Codable Error Result Never",
+ mem:"count isEmpty append insert remove removeAll removeFirst removeLast first last contains map filter reduce compactMap flatMap forEach sorted sort reversed reverse joined split enumerated min max shuffled randomElement prefix suffix dropFirst dropLast lowercased uppercased hasPrefix hasSuffix trimmingCharacters components replacingOccurrences firstIndex lastIndex keys values updateValue removeValue merge allSatisfy description"
+};
+
+// ---- Ruby ----
+AC.ruby={
+ fn:"puts print p pp gets printf sprintf format rand srand sleep loop lambda proc raise catch throw exit abort at_exit binding block_given? freeze Integer Float String Array Hash Rational Complex Math.sqrt Math.sin Math.cos Math.tan Math.log Math.hypot Time.now Time.at File.read File.write File.open File.exist? File.readlines Dir.glob",
+ ct:"Math::PI Math::E ARGV ENV STDIN STDOUT __FILE__ __method__",
+ ty:"Comparable Enumerable Kernel Struct Set Time File Dir Random Range Symbol Proc Exception StandardError ArgumentError TypeError NameError RuntimeError ZeroDivisionError",
+ mem:"each each_with_index each_char each_slice each_cons map select reject reduce inject find find_all detect sort sort_by min max sum count first last push pop shift unshift insert delete delete_at compact flatten uniq reverse rotate join split include? empty? nil? length size keys values key? has_key? fetch store merge to_a to_s to_i to_f to_sym to_h upcase downcase capitalize swapcase strip lstrip rstrip chomp chop chars bytes lines gsub sub tr start_with? end_with? index rindex slice center ljust rjust zip take drop group_by partition times upto downto step abs round floor ceil zero? even? odd? between? clamp is_a? respond_to? instance_of? kind_of? dup clone tap then"
+};
+
+// ---- Dart ----
+AC.dart={
+ fn:"print main runApp int.parse double.parse num.parse int.tryParse double.tryParse String.fromCharCode DateTime.now Future.delayed Future.value Future.wait List.generate List.filled List.of Map.from Set.from min max sqrt pow sin cos tan log exp jsonEncode jsonDecode stdout.write stdin.readLineSync",
+ ct:"double.infinity double.nan int.maxFinite pi",
+ ty:"Future Stream StringBuffer DateTime Duration Random Iterable Function Object dynamic Null Runes Symbol Exception Error Comparable dart:math dart:io dart:async dart:convert",
+ mem:"add addAll remove removeAt removeLast removeWhere insert insertAll clear contains indexOf lastIndexOf isEmpty isNotEmpty forEach map where reduce fold any every expand toList toSet sort shuffle sublist join take skip firstWhere lastWhere singleWhere containsKey containsValue putIfAbsent update toString toUpperCase toLowerCase trim split substring replaceAll startsWith endsWith padLeft padRight codeUnitAt indexWhere compareTo toInt toDouble toStringAsFixed round floor ceil abs",
+ field:"length first last keys values entries"
+};
+
+// ---- R ----
+AC.r={
+ fn:"print cat paste paste0 sprintf format nchar substr substring toupper tolower trimws strsplit gsub sub grepl grep regmatches c vector list matrix array data.frame factor length seq seq_len seq_along rep rev sort order unique table sum mean median var sd min max range cumsum cumprod prod round floor ceiling abs sqrt exp log log2 log10 sin cos tan is.na is.null is.numeric is.character is.logical is.function as.numeric as.integer as.character as.logical as.Date names colnames rownames nrow ncol dim head tail str summary apply lapply sapply vapply Map Filter Reduce do.call which which.max which.min any all ifelse switch stop warning tryCatch try message readline readLines readRDS read.csv write.csv file.exists Sys.time Sys.Date Sys.sleep set.seed sample runif rnorm rbinom identical setdiff union intersect append plot hist barplot lines points library require suppressWarnings invisible exists get assign rm ls",
+ ct:"pi LETTERS letters month.name month.abb T F",
+ kw:"repeat"
+};
+
+// ---- Scala ----
+AC.scala={
+ fn:"println print printf readLine readInt readDouble List Map Set Vector Array Seq Option Some math.sqrt math.pow math.abs math.max math.min math.floor math.ceil math.round math.random math.sin math.cos scala.io.StdIn.readLine scala.io.StdIn.readInt",
+ ct:"Nil None math.Pi math.E Int.MaxValue Int.MinValue Long.MaxValue Double.MaxValue",
+ ty:"Either Left Right Try Success Failure Future Iterator StringBuilder Ordering Numeric Console",
+ mem:"map flatMap filter foldLeft foldRight reduce reduceLeft fold sum product min max size length isEmpty nonEmpty head tail last init take drop takeWhile dropWhile zip zipWithIndex unzip mkString foreach toList toArray toSet toMap sorted sortBy sortWith reverse distinct groupBy partition exists forall find contains indexOf count collect getOrElse get orElse isDefined split trim toUpperCase toLowerCase substring replace startsWith endsWith toInt toDouble toString apply update append prepended appended"
+};
+
+// ---- HTML / CSS lists ----
+const CSS_PROPS="color background background-color background-image background-size background-position background-repeat background-attachment background-clip background-blend-mode margin margin-top margin-bottom margin-left margin-right margin-inline margin-block padding padding-top padding-bottom padding-left padding-right padding-inline padding-block border border-top border-bottom border-left border-right border-radius border-color border-width border-style border-collapse border-spacing outline outline-color outline-style outline-width outline-offset display position top bottom left right inset z-index float clear visibility overflow overflow-x overflow-y width height min-width max-width min-height max-height box-sizing aspect-ratio object-fit object-position flex flex-direction flex-wrap flex-grow flex-shrink flex-basis flex-flow justify-content justify-items justify-self align-items align-self align-content place-items place-content place-self order gap row-gap column-gap grid grid-template grid-template-columns grid-template-rows grid-template-areas grid-area grid-column grid-row grid-column-start grid-column-end grid-row-start grid-row-end grid-auto-flow grid-auto-columns grid-auto-rows font font-size font-family font-weight font-style font-variant font-stretch line-height letter-spacing word-spacing text-align text-decoration text-decoration-color text-decoration-line text-decoration-style text-indent text-overflow text-shadow text-transform text-wrap white-space word-break word-wrap overflow-wrap vertical-align direction writing-mode list-style list-style-type list-style-position list-style-image cursor pointer-events user-select resize opacity transition transition-property transition-duration transition-delay transition-timing-function animation animation-name animation-duration animation-delay animation-timing-function animation-iteration-count animation-direction animation-fill-mode animation-play-state transform transform-origin transform-style perspective perspective-origin backface-visibility filter backdrop-filter box-shadow mix-blend-mode clip-path mask content counter-increment counter-reset quotes table-layout caption-side empty-cells scroll-behavior scroll-snap-type scroll-snap-align scroll-margin scroll-padding overscroll-behavior touch-action will-change appearance accent-color caret-color color-scheme isolation object-view-box contain container-type container-name";
+const CSS_VALS="none auto inherit initial unset revert block inline inline-block flex inline-flex grid inline-grid table table-cell contents hidden visible collapse absolute relative fixed sticky static left right top bottom center start end stretch baseline space-between space-around space-evenly flex-start flex-end row column row-reverse column-reverse wrap nowrap wrap-reverse dense bold bolder lighter normal italic oblique underline overline line-through uppercase lowercase capitalize solid dashed dotted double groove ridge inset outset transparent currentColor red green blue yellow orange purple pink black white gray grey brown cyan magenta lime navy teal maroon olive silver gold pointer default text move not-allowed grab grabbing crosshair wait help zoom-in zoom-out cover contain repeat no-repeat repeat-x repeat-y scroll fill fit-content max-content min-content ease ease-in ease-out ease-in-out linear infinite alternate alternate-reverse forwards backwards both paused running border-box content-box padding-box sans-serif serif monospace cursive fantasy system-ui pre pre-wrap pre-line break-word break-all ellipsis clip justify smooth thin medium thick small large x-large xx-large larger smaller auto-fill auto-fit subgrid pixelated mandatory proximity";
+const CSS_VFN="rgb rgba hsl hsla var calc url linear-gradient radial-gradient conic-gradient repeating-linear-gradient translate translateX translateY translateZ translate3d rotate rotateX rotateY rotateZ scale scaleX scaleY skew skewX skewY matrix perspective minmax repeat clamp min max attr counter cubic-bezier steps blur brightness contrast drop-shadow grayscale hue-rotate invert opacity saturate sepia env fit-content";
+const HTML_TAGS="a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption cite code col colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd label legend li link main map mark menu meta meter nav noscript object ol optgroup option output p param picture pre progress q rp rt ruby s samp script section select slot small source span strong style sub summary sup svg table tbody td template textarea tfoot th thead time title tr track u ul var video wbr";
+const HTML_ATTRS="class id style title lang dir hidden tabindex draggable contenteditable spellcheck accesskey role data-id data-value data-name aria-label aria-hidden aria-labelledby aria-describedby aria-expanded aria-live onclick ondblclick onchange oninput onsubmit onload onmouseover onmouseout onmousedown onmouseup onkeydown onkeyup onkeypress onfocus onblur onscroll onresize href target rel download hreflang src alt width height loading srcset sizes type name value placeholder required disabled readonly checked min max step maxlength minlength pattern autofocus autocomplete multiple accept action method enctype novalidate for selected rows cols wrap media content charset async defer srcdoc sandbox allowfullscreen frameborder controls autoplay loop muted preload poster colspan rowspan headers scope open start reversed label list form formaction size crossorigin integrity viewBox xmlns fill stroke d cx cy r x y points";
+const BOOL_ATTRS=new Set("required disabled readonly checked selected multiple autofocus hidden controls autoplay loop muted async defer novalidate open reversed allowfullscreen".split(" "));
+const KIND={fn:"ƒ",kw:"kw",ty:"type",ct:"const",var:"var",prop:"prop",tag:"tag",attr:"attr",val:"value",field:"prop"};
+const RANK={fn:0,prop:0,tag:0,attr:0,val:0,field:0,kw:1,ty:2,ct:3,var:4};
+const esc2=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const sp2=s=>s?s.split(" "):[];
+const COLON=["rust","cpp","php","ruby","lua"];
+
+// Pure: list of suggestions for a prefix
+function suggest(id,prefix,type,doc){
+  const lp=prefix.toLowerCase(),out=new Map(),sql=id==="sql";
+  const add=(w,kind)=>{
+    if(!w)return;
+    const text=(sql&&kind!=="var")?w.toUpperCase():w;
+    if(!out.has(text)&&text.toLowerCase().startsWith(lp))out.set(text,{text,kind,o:out.size});
+  };
+  if(type==="tag")sp2(HTML_TAGS).forEach(w=>add(w,"tag"));
+  else if(type==="attr")sp2(HTML_ATTRS).forEach(w=>add(w,"attr"));
+  else if(type==="prop")sp2(CSS_PROPS).forEach(w=>add(w,"prop"));
+  else if(type==="val"){sp2(CSS_VALS).forEach(w=>add(w,"val"));sp2(CSS_VFN).forEach(w=>add(w,"fn"))}
+  else{
+    const X=AC[id]||{};
+    sp2(X.fn).forEach(w=>add(w,"fn"));
+    const W=window.langWords?window.langWords(id):{kw:[],ct:[],ty:[],fn:[]};
+    W.kw.concat(W.fn).forEach(w=>add(w,"kw"));sp2(X.kw).forEach(w=>add(w,"kw"));
+    W.ty.concat(sp2(X.ty)).forEach(w=>add(w,"ty"));
+    W.ct.concat(sp2(X.ct)).forEach(w=>add(w,"ct"));
+    (doc.match(/[A-Za-z_$][\w$]{2,}/g)||[]).forEach(w=>add(w,"var"));
+    // obj.method / Type::member: nothing matched as a whole word, so offer members of any object
+    const cut=Math.max(prefix.lastIndexOf("."),prefix.lastIndexOf(":"));
+    if(cut>0&&cut<prefix.length-1&&!out.size){
+      const obj=prefix.slice(0,cut+1),mem=prefix.slice(cut+1).toLowerCase();
+      sp2(X.mem).forEach(w=>{if(w.toLowerCase().startsWith(mem)&&!out.has(obj+w))out.set(obj+w,{text:obj+w,kind:"fn",o:out.size})});
+      sp2(X.field).forEach(w=>{if(w.toLowerCase().startsWith(mem)&&!out.has(obj+w))out.set(obj+w,{text:obj+w,kind:"field",o:out.size})});
+    }
+  }
+  const typedSep=/[.:]/.test(prefix),per={};
+  return [...out.values()].filter(x=>x.text!==prefix||x.kind==="fn")
+    .sort((a,b)=>RANK[a.kind]-RANK[b.kind]||(b.text.startsWith(prefix)-a.text.startsWith(prefix))||((typedSep||!(/[.:]/.test(a.text)&&/[.:]/.test(b.text)))?a.text.length-b.text.length:0)||a.o-b.o)
+    .filter(x=>{ // before a "." is typed, show at most 2 entries per namespace (console.*, random.* ...)
+      if(typedSep)return true;
+      const i=x.text.search(/[.:]/);
+      if(i<1)return true;
+      const ns=x.text.slice(0,i);per[ns]=(per[ns]||0)+1;
+      return per[ns]<=2;
+    })
+    .slice(0,8);
+}
+window.acSuggest=suggest;
+
+// Where is the caret? Returns {prefix,type,lang} or null
+function getCtx(){
+  let id=activeLang;const s=ta.selectionStart;
+  if(!id||s!==ta.selectionEnd)return null;
+  let before=ta.value.slice(0,s);
+  if(id==="html"){
+    // caret inside <script> / <style>: suggest JavaScript / CSS
+    const lo=before.toLowerCase();
+    const so=lo.lastIndexOf("<script"),sc=lo.lastIndexOf("</script"),yo=lo.lastIndexOf("<style"),yc=lo.lastIndexOf("</style");
+    const sg=so>-1?before.indexOf(">",so):-1,yg=yo>-1?before.indexOf(">",yo):-1;
+    if(so>sc&&sg>-1){id="javascript";before=before.slice(sg+1)}
+    else if(yo>yc&&yg>-1){id="css";before=before.slice(yg+1)}
+    else{
+      const lt=before.lastIndexOf("<");
+      if(lt<0||lt<before.lastIndexOf(">"))return null;
+      const tt=before.slice(lt);
+      const sm=tt.match(/\sstyle\s*=\s*(["'])([^"']*)$/i); // inline style="..." -> CSS
+      if(sm){
+        const inn=sm[2],lc=inn.lastIndexOf(":"),ls=inn.lastIndexOf(";");
+        if(lc>ls){const vm=inn.slice(lc+1).match(/(?:^|[\s(,])(-?[a-z][a-z-]{1,})$/i);return vm?{prefix:vm[1],type:"val",lang:"css"}:null}
+        const pm=inn.match(/(?:^|[\s;])([a-z-]{2,})$/i);
+        return pm?{prefix:pm[1],type:"prop",lang:"css"}:null;
+      }
+      if((tt.match(/"/g)||[]).length%2||(tt.match(/'/g)||[]).length%2)return null;
+      const am=tt.match(/^<[A-Za-z][\w-]*\s(?:[^>]*\s)?([A-Za-z][\w:-]*)$/);
+      if(am)return {prefix:am[1],type:"attr",lang:"html"};
+      const tm=tt.match(/^<([A-Za-z][\w-]*)$/);
+      return tm?{prefix:tm[1],type:"tag",lang:"html"}:null;
+    }
+  }
+  const line=before.slice(before.lastIndexOf("\n")+1);
+  const q=line.replace(/\\./g,"");
+  if((q.match(/"/g)||[]).length%2||(q.match(/`/g)||[]).length%2||(id!=="rust"&&(q.match(/'/g)||[]).length%2))return null; // inside a string
+  if(id==="css"){
+    if(/\/\*(?![\s\S]*\*\/)/.test(before))return null; // inside a /* comment */
+    const cl=before.replace(/\/\*[\s\S]*?\*\//g,"").replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g,"");
+    const open=(cl.match(/\{/g)||[]).length-(cl.match(/\}/g)||[]).length;
+    if(open<=0)return null;
+    const lc=line.lastIndexOf(":"),ls=Math.max(line.lastIndexOf(";"),line.lastIndexOf("{"));
+    if(lc>ls){ // after "property:" -> suggest values
+      const vm=line.slice(lc+1).match(/(?:^|[\s(,])(-?[a-z][a-z-]{1,})$/i);
+      return vm?{prefix:vm[1],type:"val",lang:id}:null;
+    }
+    const m=before.match(/(?:^|[\s;{])([a-z-]{2,})$/i);
+    return m?{prefix:m[1],type:"prop",lang:id}:null;
+  }
+  const s2=line.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,"");
+  const hash=["python","ruby","r","php"].includes(id),dash=id==="sql"||id==="lua";
+  if((hash&&/#/.test(s2))||(dash&&/--/.test(s2))||(!hash&&!dash&&id!=="c"&&/\/\/|\/\*/.test(s2)))return null; // inside a comment
+  const m=before.match(COLON.includes(id)?/[A-Za-z_$][\w$.:]*$/:/[A-Za-z_$][\w$.]*$/);
+  return m&&m[0].length>=2?{prefix:m[0],type:"word",lang:id}:null;
+}
+
+// ---------- Popup ----------
+const st=document.createElement("style");
+st.textContent=`.ac{position:absolute;z-index:20;min-width:170px;max-width:min(320px,90%);background:var(--bg-header);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 25px var(--shadow);padding:4px;font-family:'Fira Code',monospace;font-size:13px}
+.ac-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:5px 8px;border-radius:5px;cursor:pointer;color:var(--h-plain,var(--text));white-space:nowrap}
+.ac-item.on{background:rgba(var(--accent-rgb),.2)}
+.ac-item b{color:var(--accent);font-weight:600}
+.ac-item i{font-style:normal;font-size:10px}
+.k-fn{color:var(--h-fn)}.k-kw{color:var(--h-kw)}.k-ty{color:var(--h-ty)}.k-ct{color:var(--h-ct)}.k-var{color:var(--muted)}.k-prop{color:var(--h-prop)}.k-tag{color:var(--h-tag)}.k-attr{color:var(--h-attr)}.k-val{color:var(--h-str)}.k-field{color:var(--h-prop)}`;
+document.head.appendChild(st);
+const box=document.createElement("div");box.className="ac";box.style.display="none";host.appendChild(box);
+const cm=document.createElement("div");
+cm.style.cssText="position:absolute;visibility:hidden;left:-9999px;top:0;padding:15px;border:0;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;font-family:'Fira Code',monospace;font-size:14px;line-height:1.6";
+document.body.appendChild(cm);
+let items=[],sel=0,nav=false,pref="";
+
+function hide(){box.style.display="none";items=[]}
+function draw(){
+  box.innerHTML="";
+  items.forEach((it,i)=>{
+    const d=document.createElement("div"),p=pref.length;
+    d.className="ac-item"+(i===sel?" on":"");
+    d.innerHTML="<span><b>"+esc2(it.text.slice(0,p))+"</b>"+esc2(it.text.slice(p))+(it.kind==="fn"?"()":"")+"</span><i class=\"k-"+it.kind+"\">"+KIND[it.kind]+"</i>";
+    d.addEventListener("pointerdown",e=>{e.preventDefault();accept(it)}); // keeps the keyboard open on phones
+    box.appendChild(d);
+  });
+}
+function place(){
+  const s=ta.selectionStart;
+  cm.style.width=ta.clientWidth+"px";
+  cm.textContent=ta.value.slice(0,s-pref.length);
+  const sp=document.createElement("span");sp.textContent="\u200b";cm.appendChild(sp);
+  const wr=wrap.getBoundingClientRect(),hr=host.getBoundingClientRect(),lh=22.4;
+  box.style.display="block";
+  const bw=box.offsetWidth,bh=box.offsetHeight;
+  const y=wr.top-hr.top+sp.offsetTop-ta.scrollTop;
+  let left=wr.left-hr.left+sp.offsetLeft-ta.scrollLeft,top=y+lh;
+  left=Math.max(4,Math.min(left,hr.width-bw-4));
+  if(top+bh>hr.height-4)top=y-bh-2; // not enough room below: show above the line
+  box.style.left=left+"px";box.style.top=Math.max(4,top)+"px";
+}
+function show(ctx){
+  const list=suggest(ctx.lang||activeLang,ctx.prefix,ctx.type,ta.value);
+  if(!list.length){hide();return}
+  items=list;sel=0;nav=false;pref=ctx.prefix;draw();place();
+}
+function accept(it){
+  const s=ta.selectionStart,v=ta.value,nx=v[s]||"";
+  let text=it.text,back=0;
+  if(it.kind==="fn"&&nx!=="("&&activeLang!=="ruby"){text+="()";back=1}
+  else if(it.kind==="prop"&&nx!==":")text+=": ";
+  else if(it.kind==="attr"&&nx!=="="&&!BOOL_ATTRS.has(text)){text+='=""';back=1}
+  ta.setRangeText(text,s-pref.length,s,"end");
+  if(back){const c=ta.selectionStart-back;ta.setSelectionRange(c,c)}
+  hide();ta.focus();
+  ta.dispatchEvent(new Event("input")); // lets the editor update line numbers / run the code
+}
+ta.addEventListener("input",e=>{
+  if(e.inputType!=="insertText"&&e.inputType!=="insertCompositionText"){hide();return}
+  const c=getCtx();c?show(c):hide();
+});
+ta.addEventListener("keydown",e=>{
+  if(box.style.display==="none")return;
+  const k=e.key;
+  if(k==="ArrowDown"||k==="ArrowUp"){e.preventDefault();sel=(sel+(k==="ArrowDown"?1:items.length-1))%items.length;nav=true;draw()}
+  else if((k==="Tab"&&!e.shiftKey)||(k==="Enter"&&nav&&!e.ctrlKey&&!e.metaKey)){e.preventDefault();e.stopImmediatePropagation();accept(items[sel])}
+  else if(k==="Escape"||k==="ArrowLeft"||k==="ArrowRight"||k==="Home"||k==="End"||k==="Enter")hide();
+},true);
+ta.addEventListener("scroll",hide);
+ta.addEventListener("click",hide);
+ta.addEventListener("blur",()=>setTimeout(hide,150));
+const _le=loadEditor;
+loadEditor=function(){hide();_le()};
+})();
+renderTabs();renderMenu();loadEditor();
+if(!activeLang)output.srcdoc=blankDoc();
+</script>
+</body>
+</html>
